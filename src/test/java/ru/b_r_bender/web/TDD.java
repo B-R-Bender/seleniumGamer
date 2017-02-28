@@ -1,6 +1,7 @@
 package ru.b_r_bender.web;
 
 import org.openqa.selenium.WebDriver;
+import ru.b_r_bender.web.controller.Duelist;
 import ru.b_r_bender.web.model.EnterPage;
 import ru.b_r_bender.web.model.LoginPage;
 import ru.b_r_bender.web.model.MainPage;
@@ -24,6 +25,10 @@ public class TDD {
         } catch (FailedLoginException e) {
             //MYTODO [Homenko] добавить обработку эксепшена
         }
+
+        Duelist duelist = new Duelist(webDriver,false);
+        duelist.checkDuelAvailable();
+        duelist.killEmAll();
 
         SeleniumUtils.driverDismiss(webDriver);
     }

@@ -1,4 +1,4 @@
-package ru.b_r_bender.web.model;
+package ru.b_r_bender.web.model.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -34,7 +34,7 @@ public class LoginPage extends AbstractPage {
         webDriver.findElement(userPasswordLocator).sendKeys(userPassword);
         webDriver.findElement(userPasswordLocator).submit();
         if (webDriver.getCurrentUrl().equals(MainPage.MAIN_PAGE_URI)) {
-            AbstractPage.authorizationComplete = true;
+            authorizationComplete = true;
             return new MainPage(webDriver);
         } else {
             throw new FailedLoginException("Login failed somehow. FIDO");

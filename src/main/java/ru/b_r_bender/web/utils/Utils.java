@@ -3,6 +3,7 @@ package ru.b_r_bender.web.utils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import ru.b_r_bender.web.controller.Duelist;
 
 import java.util.Random;
 
@@ -19,19 +20,22 @@ public class Utils {
     private static Random random = new Random();
 
     /**
-     * Method will calculate cool down time for specified <b>elementLocator</b> till it will be active again.
-     * @param duelistDriver driver with specified page where <b>elementLocator</b> can be found
-     * @param elementLocator to calculate cool down time for
+     * Method will calculate cool down time for specified <b>pageUri</b> till it will be active again.
+     * by default method will return 2+ hours.
      * @return cool down time in milliseconds
      */
-    public static synchronized long calculateElementCoolDownTime(WebDriver duelistDriver, By elementLocator) {
-        duelistDriver.navigate().refresh();
-        duelistDriver.findElement(elementLocator);
-        return 0;
+    public static synchronized long calculateElementCoolDownTime(String pageUri) {
+        switch (pageUri) {
+            case Duelist.DUEL_PAGE_URI:
+                return 5_400_000 + getLongDelay();
+            default:
+                return 7_200_000 + getLongDelay();
+        }
     }
 
     /**
      * Return random short delay time to imitate human behavior. Delay range 500 - 3000 milliseconds.
+     *
      * @return random delay in milliseconds
      */
     public static long getShortDelay() {
@@ -40,6 +44,7 @@ public class Utils {
 
     /**
      * Return random medium delay time to imitate human behavior. Delay range 5000 - 25000 milliseconds.
+     *
      * @return random delay in milliseconds
      */
     public static long getMediumDelay() {
@@ -48,9 +53,25 @@ public class Utils {
 
     /**
      * Return random long delay time to imitate human behavior. Delay range 155000 - 425000 milliseconds.
+     *
      * @return random delay in milliseconds
      */
     public static long getLongDelay() {
         return random.nextInt(270_000) + 155_000;
+    }
+
+    /**
+     * Calculates result of multiplying round to int
+     *
+     * @param value      vale to multiply
+     * @param multiplier to apply on value
+     * @return value * multiplier round to int
+     */
+    public static int calculateMultiplierResult(int value, double multiplier) {
+        return new Long(Math.round(value * multiplier)).intValue();
+    }
+
+    public static double parseMultiplierValue(String multiplierText) {
+        return Double.parseDouble(multiplierText.substring(2));
     }
 }

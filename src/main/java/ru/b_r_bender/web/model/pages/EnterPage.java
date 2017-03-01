@@ -1,10 +1,7 @@
-package ru.b_r_bender.web.model;
+package ru.b_r_bender.web.model.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import ru.b_r_bender.web.model.intefraces.Navigable;
-
-import java.net.URISyntaxException;
 
 /**
  * @author BRBender created on 28.02.2017.

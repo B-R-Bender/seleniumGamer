@@ -4,12 +4,12 @@ package ru.b_r_bender.web.utils;
  * @author Homenko created on 28.02.2017.
  */
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.Cookie;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.apache.commons.io.FileUtils;
+import org.openqa.selenium.*;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,6 +50,10 @@ public class SeleniumUtils {
         } else {
             return false;
         }
+    }
+
+    public static void refresh(WebDriver webDriver) {
+        webDriver.navigate().refresh();
     }
 
     public static WebElement getWebElement(WebDriver webDriver, By elementLocator) {
@@ -96,6 +100,20 @@ public class SeleniumUtils {
             return Integer.valueOf(webElement.getText().replaceAll("[^\\d]", "" ));
         } else {
             return null;
+        }
+    }
+
+    public static void takeScreenShot(WebDriver webDriver) {
+        takeNamedScreenShot(webDriver, "D:\\Java\\screenshot_.png");
+    }
+
+    public static void takeNamedScreenShot(WebDriver webDriver, String filePath) {
+        try {
+            File srcFile = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
+            FileUtils.copyFile(srcFile, new File(filePath));
+        } catch (IOException e) {
+            //MYTODO [Homenko] допилить обработку ошибок
+            e.printStackTrace();
         }
     }
 }

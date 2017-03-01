@@ -1,4 +1,4 @@
-package ru.b_r_bender.web.model;
+package ru.b_r_bender.web.model.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;

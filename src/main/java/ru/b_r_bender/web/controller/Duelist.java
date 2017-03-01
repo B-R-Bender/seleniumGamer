@@ -68,7 +68,9 @@ public class Duelist implements Runnable {
     }
 
     public void killEmAll() {
-        while (opponentIsToStrong()) {
+        int opponentSkipCount = 0;
+        int opponentsBoundary = Utils.skippedOpponentsBoundary();
+        while (opponentIsToStrong(opponentSkipCount++, opponentsBoundary)) {
             try {
                 Thread.sleep(Utils.getShortDelay());
             } catch (InterruptedException e) {
@@ -81,7 +83,10 @@ public class Duelist implements Runnable {
         defeatThatGuy();
     }
 
-    private boolean opponentIsToStrong() {
+    private boolean opponentIsToStrong(int opponentSkipCount, int opponentsBoundary) {
+        if (opponentSkipCount == opponentsBoundary) {
+            return false;
+        }
         Integer heroStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, heroStatsLocator);
         Integer opponentStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, opponentStatsLocator);
         return calculateHeroCap(heroStrength) < opponentStrength;

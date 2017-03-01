@@ -27,9 +27,9 @@ public class Utils {
     public static synchronized long calculateElementCoolDownTime(String pageUri) {
         switch (pageUri) {
             case Duelist.DUEL_PAGE_URI:
-                return 5_400_000 + getLongDelay();
+                return 1_800_000 + getLongDelay();
             default:
-                return 7_200_000 + getLongDelay();
+                return 3_600_000 + getLongDelay();
         }
     }
 
@@ -58,6 +58,15 @@ public class Utils {
      */
     public static long getLongDelay() {
         return random.nextInt(270_000) + 155_000;
+    }
+
+    /**
+     * Return random integer in range 31-53 to be used as boundary of skipped opponents.
+     *
+     * @return random integer in range 31-53
+     */
+    public static int skippedOpponentsBoundary() {
+        return random.nextInt(22) + 31;
     }
 
     /**

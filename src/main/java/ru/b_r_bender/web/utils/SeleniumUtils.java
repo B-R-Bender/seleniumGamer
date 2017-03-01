@@ -31,7 +31,7 @@ public class SeleniumUtils {
         return driver;
     }
 
-    public synchronized static WebDriver cloneDriverInstance(WebDriver driverToClone, String duelPageUri) {
+    public synchronized static WebDriver cloneDriverInstance(WebDriver driverToClone, String pageUri) {
         WebDriver newDriver = getNewDriverInstance();
         newDriver.get("http://elem.mobi/");
         for (Cookie cookie : driverToClone.manage().getCookies()) {
@@ -39,7 +39,7 @@ public class SeleniumUtils {
             domain = domain.charAt(0) != '.' ? "." + domain : domain;
             newDriver.manage().addCookie(new Cookie(cookie.getName(), cookie.getValue(), domain, cookie.getPath(), cookie.getExpiry()));
         }
-        newDriver.get(duelPageUri);
+        newDriver.get(pageUri);
         return newDriver;
     }
 
@@ -104,7 +104,14 @@ public class SeleniumUtils {
     }
 
     public static void takeScreenShot(WebDriver webDriver) {
-        takeNamedScreenShot(webDriver, "D:\\Java\\screenshot_.png");
+        String OS = System.getProperty("OS.name").toLowerCase();
+        String filePath;
+        if (OS.contains("win")) {
+            filePath = "D:\\Temp\\screenshot_.png";
+        } else {
+            filePath = "/home/bender/Изображения/Screenshots/screen.png";
+        }
+        takeNamedScreenShot(webDriver, filePath);
     }
 
     public static void takeNamedScreenShot(WebDriver webDriver, String filePath) {

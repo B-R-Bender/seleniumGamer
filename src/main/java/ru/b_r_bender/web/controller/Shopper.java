@@ -39,18 +39,22 @@ public class Shopper implements Runnable {
     public void run() {
         int possibleAmountOfCardsToBy = heroSilver / 500;
         while (true) {
-            if (possibleAmountOfCardsToBy-- > 0) {
-                SeleniumUtils.getWebElement(shopperDriver, byCardForSilverButtonLocator).click();
-            } else {
-                try {
+            try {
+                if (possibleAmountOfCardsToBy-- > 0) {
+                    Thread.sleep(Utils.getShortDelay());
+                    SeleniumUtils.takeScreenShot(shopperDriver);
+                    SeleniumUtils.getWebElement(shopperDriver, byCardForSilverButtonLocator).click();
+                    SeleniumUtils.takeScreenShot(shopperDriver);
+                } else {
                     Thread.sleep(Utils.getMediumDelay());
-                } catch (InterruptedException e) {
-                    //TODO: логгирование
-                    e.printStackTrace();
+                    updateTreasury();
+                    possibleAmountOfCardsToBy = heroSilver / 500;
                 }
-                updateTreasury();
-                possibleAmountOfCardsToBy = heroSilver / 500;
+            } catch (InterruptedException e) {
+                //TODO: логгирование
+                e.printStackTrace();
             }
+
         }
     }
 

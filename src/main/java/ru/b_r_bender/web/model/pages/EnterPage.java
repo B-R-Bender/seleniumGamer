@@ -1,12 +1,15 @@
 package ru.b_r_bender.web.model.pages;
 
+import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import ru.b_r_bender.web.utils.SeleniumUtils;
 
 /**
  * @author BRBender created on 28.02.2017.
  */
 public class EnterPage extends AbstractPage {
+    private static final Logger LOG = Logger.getLogger(EnterPage.class);
 
     protected static final String ENTER_PAGE_URI = "http://elem.mobi/start";
 
@@ -23,7 +26,7 @@ public class EnterPage extends AbstractPage {
     }
 
     public LoginPage registeredUserEntry() {
-        webDriver.findElement(enterButtonLocator).click();
+        SeleniumUtils.getWebElement(webDriver, enterButtonLocator).click();
         return new LoginPage(webDriver);
     }
 

@@ -1,5 +1,6 @@
 package ru.b_r_bender.web.controller;
 
+import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -15,6 +16,7 @@ import java.util.List;
  * @author BRBender created on 28.02.2017.
  */
 public class Duelist implements Runnable {
+    private static final Logger LOG = Logger.getLogger(Duelist.class);
 
     public static final String DUEL_PAGE_URI = "http://elem.mobi/duel/";
 
@@ -74,8 +76,7 @@ public class Duelist implements Runnable {
             try {
                 Thread.sleep(Utils.getShortDelay());
             } catch (InterruptedException e) {
-                //MYTODO [Homenko] логирование
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
             findNewOpponent();
         }
@@ -89,6 +90,9 @@ public class Duelist implements Runnable {
         }
         Integer heroStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, heroStatsLocator);
         Integer opponentStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, opponentStatsLocator);
+        LOG.info("Comparing new opponent#" + opponentSkipCount
+                            + ". Hero strength: " + heroStrength
+                            + ". Opponent strength: " + opponentStrength);
         return calculateHeroCap(heroStrength) < opponentStrength;
     }
 

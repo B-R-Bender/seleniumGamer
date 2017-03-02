@@ -20,7 +20,10 @@ import java.util.List;
  */
 public class SeleniumUtils {
 
-    private static List<WebDriver> createdDrivers = new ArrayList<WebDriver>();
+    private static final String OS_NAME = System.getProperty("os.name").toLowerCase();;
+
+    private static volatile int screenShotCounter;
+    private static List<WebDriver> createdDrivers = new ArrayList<>();
 
     private SeleniumUtils() {
     }
@@ -39,6 +42,7 @@ public class SeleniumUtils {
             domain = domain.charAt(0) != '.' ? "." + domain : domain;
             newDriver.manage().addCookie(new Cookie(cookie.getName(), cookie.getValue(), domain, cookie.getPath(), cookie.getExpiry()));
         }
+        createdDrivers.add(newDriver);
         newDriver.get(pageUri);
         return newDriver;
     }
@@ -96,25 +100,30 @@ public class SeleniumUtils {
 
     public static Integer getIntValueFromElement(WebDriver webDriver, By elementLocator) {
         WebElement webElement = getWebElement(webDriver, elementLocator);
+        Integer result = null;
         if (webElement != null) {
-            return Integer.valueOf(webElement.getText().replaceAll("[^\\d]", "" ));
-        } else {
-            return null;
+            String valueString = webElement.getText();
+            if (valueString.contains("K")) {
+                Double parsedDouble = Double.valueOf(valueString.substring(0, valueString.length() - 1)) * 1_000;
+                result = parsedDouble.intValue();
+            } else {
+                result = Integer.valueOf(valueString.replaceAll("[^\\d]", ""));
+            }
         }
+        return result;
     }
 
-    public static void takeScreenShot(WebDriver webDriver) {
-        String OS = System.getProperty("OS.name").toLowerCase();
+    public static synchronized void takeScreenShot(WebDriver webDriver) {
         String filePath;
-        if (OS.contains("win")) {
-            filePath = "D:\\Temp\\screenshot_.png";
+        if (OS_NAME.contains("win")) {
+            filePath = "D:\\tmp\\seleniumGamerScr\\screenshot" + screenShotCounter++ + ".png";
         } else {
-            filePath = "/home/bender/Изображения/Screenshots/screen.png";
+            filePath = "/home/bender/Изображения/Screenshots/seleniumGamerScr/screen" + screenShotCounter++ + ".png";
         }
         takeNamedScreenShot(webDriver, filePath);
     }
 
-    public static void takeNamedScreenShot(WebDriver webDriver, String filePath) {
+    public static synchronized void takeNamedScreenShot(WebDriver webDriver, String filePath) {
         try {
             File srcFile = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
             FileUtils.copyFile(srcFile, new File(filePath));

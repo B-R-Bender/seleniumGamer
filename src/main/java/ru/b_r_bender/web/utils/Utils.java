@@ -1,8 +1,5 @@
 package ru.b_r_bender.web.utils;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.controller.Duelist;
 
 import java.util.Random;
@@ -24,7 +21,7 @@ public class Utils {
      * by default method will return 2+ hours.
      * @return cool down time in milliseconds
      */
-    public static synchronized long calculateElementCoolDownTime(String pageUri) {
+    public static long calculateElementCoolDownTime(String pageUri) {
         switch (pageUri) {
             case Duelist.DUEL_PAGE_URI:
                 return 1_800_000 + getLongDelay();

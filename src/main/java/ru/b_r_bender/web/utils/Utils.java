@@ -2,7 +2,11 @@ package ru.b_r_bender.web.utils;
 
 import ru.b_r_bender.web.controller.Duelist;
 
+import java.text.MessageFormat;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Random;
+import java.util.ResourceBundle;
 
 /**
  * Utility class containing methods to get random delays, to calculate different values so on.
@@ -15,6 +19,7 @@ public class Utils {
     }
 
     private static Random random = new Random();
+    private static ResourceBundle messages = ResourceBundle.getBundle("messages", Locale.ENGLISH);
 
     /**
      * Method will calculate cool down time for specified <b>pageUri</b> till it will be active again.
@@ -28,6 +33,15 @@ public class Utils {
             default:
                 return 3_600_000 + getLongDelay();
         }
+    }
+
+    /**
+     * Return random super short delay time to imitate human behavior. Delay range 200 - 1000 milliseconds.
+     *
+     * @return random delay in milliseconds
+     */
+    public static long getSuperShortDelay() {
+        return random.nextInt(800) + 200;
     }
 
     /**
@@ -79,5 +93,13 @@ public class Utils {
 
     public static double parseMultiplierValue(String multiplierText) {
         return Double.parseDouble(multiplierText.substring(2));
+    }
+
+    public static String getMessage(String messageKey) {
+        return messages.getString(messageKey);
+    }
+
+    public static String getFormattedMessage(String messageKey, Object... objects) {
+        return MessageFormat.format(messages.getString(messageKey), objects);
     }
 }

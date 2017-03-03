@@ -58,6 +58,15 @@ public class DuelAttackOption implements Comparable<DuelAttackOption> {
     }
 
     @Override
+    public String toString() {
+        return "DuelAttackOption{" +
+                "opponentStrength=" + opponentStrength +
+                ", attackDamageMultiplier=" + attackDamageMultiplier +
+                ", heroStrength=" + heroStrength +
+                '}';
+    }
+
+    @Override
     public int compareTo(DuelAttackOption that) {
         if (that == null) {
             throw new IllegalArgumentException("DuelAttackOption can not be compared to null");

@@ -1,6 +1,8 @@
 package ru.b_r_bender.web.utils;
 
+import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.controller.Duelist;
+import ru.b_r_bender.web.controller.Shopper;
 
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -19,17 +21,49 @@ public class Utils {
     }
 
     private static Random random = new Random();
-    private static ResourceBundle messages = ResourceBundle.getBundle("messages", Locale.ENGLISH);
+    private static ResourceBundle messages = ResourceBundle.getBundle("messages");
 
     /**
      * Method will calculate cool down time for specified <b>pageUri</b> till it will be active again.
-     * by default method will return 2+ hours.
+     * by default method will return 1+ hours.
      * @return cool down time in milliseconds
      */
-    public static long calculateElementCoolDownTime(String pageUri) {
+    public static long calculateElementCoolDownTime(String pageUri, WebElement coolDownElement) {
+        int hourIndex = 0;
+        int minuteIndex = 0;
+        int secondsIndex =0;
+
+        int hourCoolDownValue = 0;
+        int minuteCoolDownValue = 0;
+        int secondsCoolDownValue =0;
+
         switch (pageUri) {
             case Duelist.DUEL_PAGE_URI:
-                return 1_800_000 + getLongDelay();
+                String text = coolDownElement.getText();
+                String coolDownText = text.split("\n")[1];
+                String coolDownValue = coolDownText.substring(coolDownText.indexOf("через") + 5).trim();
+
+                hourIndex = coolDownValue.indexOf("ч");
+                minuteIndex = coolDownValue.indexOf("м");
+                secondsIndex = coolDownValue.indexOf("с");
+
+                if (hourIndex == -1) {
+                    if (minuteIndex == -1) {
+                        secondsCoolDownValue = Integer.parseInt(coolDownValue.substring(minuteIndex+1,secondsIndex).trim());
+                    } else {
+                        minuteCoolDownValue = Integer.parseInt(coolDownValue.substring(hourIndex + 1, minuteIndex).trim());
+                        secondsCoolDownValue = Integer.parseInt(coolDownValue.substring(minuteIndex + 1, secondsIndex).trim());
+                    }
+                } else {
+                    hourCoolDownValue = Integer.parseInt(coolDownValue.substring(0,hourIndex).trim());
+                    minuteCoolDownValue = Integer.parseInt(coolDownValue.substring(hourIndex+1,minuteIndex).trim());
+                }
+                return hourCoolDownValue * 3_600_000
+                        + minuteCoolDownValue * 60_000
+                        + secondsCoolDownValue * 1_000
+                        + getMediumDelay();
+            case Shopper.MARKET_PAGE_URI:
+                return 9_600_000 + getLongDelay();
             default:
                 return 3_600_000 + getLongDelay();
         }
@@ -99,7 +133,7 @@ public class Utils {
         return messages.getString(messageKey);
     }
 
-    public static String getFormattedMessage(String messageKey, Object... objects) {
+    public static String getMessage(String messageKey, Object... objects) {
         return MessageFormat.format(messages.getString(messageKey), objects);
     }
 }

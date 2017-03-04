@@ -49,8 +49,8 @@ public class MainPage extends AbstractPage {
     public void go() {
         Thread duelThread = new Thread(new Duelist(webDriver, duelAvailable), "DuelistThread");
         duelThread.start();
-//        Thread shopThread = new Thread(new Shopper(webDriver), "ShopperThread");
-//        shopThread.start();
+        Thread shopThread = new Thread(new Shopper(webDriver), "ShopperThread");
+        shopThread.start();
 //        Thread dungeonThread = new Thread();
 //        dungeonThread.start();
     }

@@ -60,9 +60,10 @@ public class DuelAttackOption implements Comparable<DuelAttackOption> {
     @Override
     public String toString() {
         return "DuelAttackOption{" +
-                "opponentStrength=" + opponentStrength +
-                ", attackDamageMultiplier=" + attackDamageMultiplier +
-                ", heroStrength=" + heroStrength +
+                "opp=" + opponentStrength +
+                ", multiplier=" + attackDamageMultiplier +
+                ", hero=" + heroStrength +
+                ", total=" + getAttackStrength() +
                 '}';
     }
 

@@ -43,6 +43,7 @@ public class Duelist implements Runnable {
         while (true) {
             if (duelAvailable) {
                 killEmAll();
+                SeleniumUtils.takeScreenShot(duelistDriver);
                 if (isNexFreeDuelAvailable()) {
                     getNextFreeDuel();
                 }
@@ -54,12 +55,12 @@ public class Duelist implements Runnable {
     }
 
     private void rest() {
-//        long coolDownTime = Utils.calculateElementCoolDownTime(DUEL_PAGE_URI);
-        long coolDownTime = Utils.getShortDelay();
+        WebElement coolDownElement = SeleniumUtils.getWebElement(duelistDriver, coolDownMessageLocator);
+        long coolDownTime = Utils.calculateElementCoolDownTime(DUEL_PAGE_URI, coolDownElement);
         try {
-            LOG.info(Utils.getFormattedMessage("duelist.info.duel.rest", coolDownTime));
+            LOG.info(Utils.getMessage("duelist.info.duel.rest", coolDownTime));
             Thread.sleep(coolDownTime);
-            LOG.info(Utils.getFormattedMessage("duelist.info.duel.rested", coolDownTime));
+            LOG.info(Utils.getMessage("duelist.info.duel.rested"));
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
         }
@@ -78,7 +79,7 @@ public class Duelist implements Runnable {
     public void killEmAll() {
         int opponentSkipCount = 0;
         int opponentsBoundary = Utils.skippedOpponentsBoundary();
-        LOG.info(Utils.getFormattedMessage("duelist.info.attemptToFindOpponent", opponentsBoundary));
+        LOG.info(Utils.getMessage("duelist.info.attemptToFindOpponent", opponentsBoundary));
         while (opponentIsToStrong(opponentSkipCount++, opponentsBoundary)) {
             try {
                 Thread.sleep(Utils.getSuperShortDelay());
@@ -93,13 +94,13 @@ public class Duelist implements Runnable {
 
     private boolean opponentIsToStrong(int opponentSkipCount, int opponentsBoundary) {
         if (opponentSkipCount == opponentsBoundary) {
-            LOG.info(Utils.getFormattedMessage("duelist.info.comparingOpponent.NoMoreTries", opponentsBoundary));
+            LOG.info(Utils.getMessage("duelist.info.comparingOpponent.NoMoreTries", opponentsBoundary));
             return false;
         }
         Integer heroStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, heroStatsLocator);
         Integer opponentStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, opponentStatsLocator);
         boolean result = calculateHeroCap(heroStrength) < opponentStrength;
-        LOG.info(Utils.getFormattedMessage("duelist.info.comparingOpponent",
+        LOG.info(Utils.getMessage("duelist.info.comparingOpponent",
                 opponentSkipCount,
                 heroStrength,
                 opponentStrength,
@@ -140,11 +141,11 @@ public class Duelist implements Runnable {
                 DuelAttackOption attackOption =
                         new DuelAttackOption(heroCards.get(i), opponentStrength, damageMultiplier, heroStrength);
                 attackOptions.add(attackOption);
-                LOG.info(Utils.getFormattedMessage("duelist.info.duel.step.attackOption", i, attackOption));
+                LOG.info(Utils.getMessage("duelist.info.duel.step.attackOption", i + 1, attackOption));
             }
             Collections.sort(attackOptions);
             DuelAttackOption bestDuelAttackOption = attackOptions.get(2);
-            LOG.info(Utils.getFormattedMessage("duelist.info.duel.step.attack", bestDuelAttackOption));
+            LOG.info(Utils.getMessage("duelist.info.duel.step.attack", bestDuelAttackOption));
             try {
                 Thread.sleep(Utils.getSuperShortDelay());
             } catch (InterruptedException e) {

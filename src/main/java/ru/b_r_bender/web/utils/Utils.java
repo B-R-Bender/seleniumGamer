@@ -6,7 +6,7 @@ import ru.b_r_bender.web.controller.Duelist;
 import ru.b_r_bender.web.controller.Shopper;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -27,8 +27,7 @@ public class Utils {
     private static Properties appProperties = new Properties();
 
     static {
-        try {
-            FileInputStream stream = new FileInputStream("application.properties");
+        try (InputStream stream = Utils.class.getClassLoader().getResourceAsStream("app.properties");){
             appProperties.load(stream);
         } catch (java.io.IOException e) {
             LOG.error(e.getMessage(), e);

@@ -25,15 +25,16 @@ public class Shopper implements Runnable {
     private int heroGold;
 
     public Shopper(WebDriver webDriver) {
+        LOG.info(Utils.getMessage("shopper.info.created"));
         shopperDriver = SeleniumUtils.cloneDriverInstance(webDriver, MARKET_PAGE_URI);
         updateTreasury();
-        LOG.info(Utils.getMessage("shopper.info.created"));
     }
 
     private void updateTreasury() {
         heroEnergy = SeleniumUtils.getIntValueFromElement(shopperDriver, energyLocator);
         heroSilver = SeleniumUtils.getIntValueFromElement(shopperDriver, silverLocator);
         heroGold = SeleniumUtils.getIntValueFromElement(shopperDriver, goldLocator);
+        LOG.info(Utils.getMessage("shopper.info.shop.heroTreasures", heroEnergy, heroSilver, heroGold));
     }
 
     @Override
@@ -41,9 +42,7 @@ public class Shopper implements Runnable {
         LOG.info(Utils.getMessage("shopper.info.thread.start"));
         int possibleAmountOfCardsToBy = heroSilver / 500;
         while (true) {
-            LOG.info(Utils.getMessage("shopper.info.shop.heroTreasures", heroEnergy, heroSilver, heroGold));
             if (possibleAmountOfCardsToBy > 0) {
-                LOG.info(Utils.getMessage("shopper.info.shop.cardsToBy", possibleAmountOfCardsToBy, possibleAmountOfCardsToBy * 500));
                 letsGoShopping(possibleAmountOfCardsToBy);
             } else {
                 rest();
@@ -54,6 +53,7 @@ public class Shopper implements Runnable {
     }
 
     public void letsGoShopping(int possibleAmountOfCardsToBy) {
+        LOG.info(Utils.getMessage("shopper.info.shop.cardsToBy", possibleAmountOfCardsToBy, possibleAmountOfCardsToBy * 500));
         try {
             for (; possibleAmountOfCardsToBy > 0; possibleAmountOfCardsToBy--) {
                 Thread.sleep(Utils.getSuperShortDelay());

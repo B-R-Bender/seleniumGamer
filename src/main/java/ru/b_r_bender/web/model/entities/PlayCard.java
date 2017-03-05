@@ -99,6 +99,7 @@ public class PlayCard implements Comparable<PlayCard> {
         }
         this.cardLevel = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_LEVEL_LOCATOR);
         this.levelProgress = SeleniumUtils.getDoubleValueFromElementAttribute(managerDriver, LEVEL_PROGRESS_LOCATOR, LEVEL_PROGRESS_ATTRIBUTE_NAME);
+        this.cardStrength = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_STRENGTH_LOCATOR);
         return SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_SUCCESS_LOCATOR) != null;
     }
 
@@ -143,6 +144,16 @@ public class PlayCard implements Comparable<PlayCard> {
     @Override
     public int compareTo(PlayCard that) {
         return that.cardStrengthAt40 - this.cardStrengthAt40;
+    }
+
+    @Override
+    public String toString() {
+        return "PlayCard{" +
+                "cardStrength=" + cardStrength +
+                ", cardLevel=" + cardLevel +
+                ", levelProgress=" + levelProgress +
+                ", cardStrengthAt40=" + cardStrengthAt40 +
+                '}';
     }
 
     @Override

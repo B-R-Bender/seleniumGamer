@@ -63,6 +63,7 @@ public class DeckManager implements Runnable {
         LOG.info(Utils.getMessage("deckManager.info.thread.start"));
         while (true) {
             if (weakCardsAvailable) {
+                LOG.info("Досутпны слабые карты, будем пытаться апгрейдить колоду");
                 upgradeDeck();
             } else {
                 rest();
@@ -73,14 +74,20 @@ public class DeckManager implements Runnable {
     private void upgradeDeck() {
         for (int i = 0; i < 9; i++) {
             PlayCard card = playDeck.get(i);
+            LOG.info("Берем карту №" + i + " -> " + card);
             managerDriver.get(card.getCardUrl());
             if (card.getLevelProgress() == 100d) {
+                LOG.info("Запускаем апгрейд");
                 card.upgrade(managerDriver);
             }
             while (card.isAbsorptionAvailable(managerDriver)) {
+                LOG.info("Для карты доступна прочкачка слабыми картами - запускаем процесс");
                 card.absorbWeakCards(managerDriver);
+                LOG.info("Прокачали карту - " + card);
                 if (card.getLevelProgress() == 100d) {
+                    LOG.info("Уровень заполнен на 100%, пробуем поднять уровень");
                     card.upgrade(managerDriver);
+                    LOG.info("Карта после попытки прокачки - " + card);
                 }
             }
         }
@@ -90,8 +97,10 @@ public class DeckManager implements Runnable {
     private void rest() {
         try {
             long coolDownTime = Utils.calculateElementCoolDownTime(PLAY_DECK_PAGE_URI, null);
+            LOG.info("Один проход менеджера колоды завершен ложимся спать на " + coolDownTime + " мс.");
 //            LOG.info(Utils.getMessage("shopper.info.shop.notEnoughMoney", coolDownTime));
             Thread.sleep(coolDownTime);
+            LOG.info("Отоспался, сейчас обновим колоды и вперед");
             updatePlayDeck();
             updateWeakDeck();
 //            LOG.info(Utils.getMessage("shopper.info.shop.gotMoreMoney"));

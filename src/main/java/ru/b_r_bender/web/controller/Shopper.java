@@ -14,10 +14,10 @@ public class Shopper implements Runnable {
 
     public static final String MARKET_PAGE_URI = "http://elem.mobi/shop/";
 
-    private static By energyLocator = By.cssSelector(".c_energy");
-    private static By silverLocator = By.cssSelector(".c_silver");
-    private static By goldLocator = By.cssSelector(".c_gold");
-    private static By byCardForSilverButtonLocator = By.cssSelector("a[href*='/shop/cards/buy/1100/']");
+    private static final By ENERGY_LOCATOR = By.cssSelector(".c_energy");
+    private static final By SILVER_LOCATOR = By.cssSelector(".c_silver");
+    private static final By GOLD_LOCATOR = By.cssSelector(".c_gold");
+    private static final By BY_CARD_FOR_SILVER_BUTTON_LOCATOR = By.cssSelector("a[href*='/shop/cards/buy/1100/']");
 
     private WebDriver shopperDriver;
     private int heroEnergy;
@@ -31,9 +31,9 @@ public class Shopper implements Runnable {
     }
 
     private void updateTreasury() {
-        heroEnergy = SeleniumUtils.getIntValueFromElement(shopperDriver, energyLocator);
-        heroSilver = SeleniumUtils.getIntValueFromElement(shopperDriver, silverLocator);
-        heroGold = SeleniumUtils.getIntValueFromElement(shopperDriver, goldLocator);
+        heroEnergy = SeleniumUtils.getIntValueFromElement(shopperDriver, ENERGY_LOCATOR);
+        heroSilver = SeleniumUtils.getIntValueFromElement(shopperDriver, SILVER_LOCATOR);
+        heroGold = SeleniumUtils.getIntValueFromElement(shopperDriver, GOLD_LOCATOR);
         LOG.info(Utils.getMessage("shopper.info.shop.heroTreasures", heroEnergy, heroSilver, heroGold));
     }
 
@@ -52,12 +52,12 @@ public class Shopper implements Runnable {
         }
     }
 
-    public void letsGoShopping(int possibleAmountOfCardsToBy) {
+    private void letsGoShopping(int possibleAmountOfCardsToBy) {
         LOG.info(Utils.getMessage("shopper.info.shop.cardsToBy", possibleAmountOfCardsToBy, possibleAmountOfCardsToBy * 500));
         try {
             for (; possibleAmountOfCardsToBy > 0; possibleAmountOfCardsToBy--) {
                 Thread.sleep(Utils.getSuperShortDelay());
-                SeleniumUtils.getWebElement(shopperDriver, byCardForSilverButtonLocator).click();
+                SeleniumUtils.getWebElement(shopperDriver, BY_CARD_FOR_SILVER_BUTTON_LOCATOR).click();
             }
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
@@ -69,6 +69,7 @@ public class Shopper implements Runnable {
             long coolDownTime = Utils.calculateElementCoolDownTime(MARKET_PAGE_URI, null);
             LOG.info(Utils.getMessage("shopper.info.shop.notEnoughMoney", coolDownTime));
             Thread.sleep(coolDownTime);
+            SeleniumUtils.refresh(shopperDriver);
             LOG.info(Utils.getMessage("shopper.info.shop.gotMoreMoney"));
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);

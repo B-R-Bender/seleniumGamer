@@ -2,8 +2,11 @@ package ru.b_r_bender.web.model.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import ru.b_r_bender.web.utils.Utils;
+import sun.misc.ClassLoaderUtil;
 
 import javax.security.auth.login.FailedLoginException;
+import java.util.ResourceBundle;
 
 /**
  * @author BRBender created on 28.02.2017.
@@ -25,8 +28,8 @@ public class LoginPage extends AbstractPage {
     @Override
     //MYTODO [Homenko] перепилить на получение данных из файла с пропертями
     void initPage() {
-        userName = "BRBender";
-        userPassword = "qweasd";
+        userName = Utils.getAppProperty("login");
+        userPassword = Utils.getAppProperty("password");
     }
 
     public MainPage login() throws FailedLoginException {

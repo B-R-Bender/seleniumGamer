@@ -18,16 +18,16 @@ public class Duelist implements Runnable {
 
     public static final String DUEL_PAGE_URI = "http://elem.mobi/duel/";
 
-    private static By coolDownMessageLocator = By.cssSelector(".txt.cntr.small");
-    private static By heroStatsLocator = By.cssSelector(".c_da");
-    private static By opponentStatsLocator = By.cssSelector(".c_da.mt5.mr5");
-    private static By duelToBattleButtonLocator = By.cssSelector("a[href='/duel/tobattle/']");
-    private static By nextBattleButtonLocator = By.cssSelector("a[href='/duel/']");
-    private static By heroCardsButtonLocator = By.cssSelector("a[href*='/duel/'][class='card']");
-    private static By opponentCardsButtonLocator = By.cssSelector("a[href*='/duel/'][class='card chide66']");
-    private static By damageMultiplierButtonLocator = By.cssSelector(".small.mb5");
-    private static By battleEndGotMoreButtonLocator = By.cssSelector("a[class*='btn'][href='/duel/']");
-    private static By battleEndNoMoreButtonLocator = By.cssSelector("a[class*='btn'][href*='/duel/restore_duels']");
+    private static final By COOL_DOWN_MESSAGE_LOCATOR = By.cssSelector(".txt.cntr.small");
+    private static final By HERO_STATS_LOCATOR = By.cssSelector(".c_da");
+    private static final By OPPONENT_STATS_LOCATOR = By.cssSelector(".c_da.mt5.mr5");
+    private static final By DUEL_TO_BATTLE_BUTTON_LOCATOR = By.cssSelector("a[href='/duel/tobattle/']");
+    private static final By NEXT_BATTLE_BUTTON_LOCATOR = By.cssSelector("a[href='/duel/']");
+    private static final By HERO_CARDS_BUTTON_LOCATOR = By.cssSelector("a[href*='/duel/'][class='card']");
+    private static final By OPPONENT_CARDS_BUTTON_LOCATOR = By.cssSelector("a[href*='/duel/'][class='card chide66']");
+    private static final By DAMAGE_MULTIPLIER_BUTTON_LOCATOR = By.cssSelector(".small.mb5");
+    private static final By BATTLE_END_GOT_MORE_BUTTON_LOCATOR = By.cssSelector("a[class*='btn'][href='/duel/']");
+    private static final By BATTLE_END_NO_MORE_BUTTON_LOCATOR = By.cssSelector("a[class*='btn'][href*='/duel/restore_duels']");
 
     private boolean duelAvailable;
     private WebDriver duelistDriver;
@@ -55,7 +55,7 @@ public class Duelist implements Runnable {
     }
 
     private void rest() {
-        WebElement coolDownElement = SeleniumUtils.getWebElement(duelistDriver, coolDownMessageLocator);
+        WebElement coolDownElement = SeleniumUtils.getWebElement(duelistDriver, COOL_DOWN_MESSAGE_LOCATOR);
         long coolDownTime = Utils.calculateElementCoolDownTime(DUEL_PAGE_URI, coolDownElement);
         try {
             LOG.info(Utils.getMessage("duelist.info.duel.rest", coolDownTime));
@@ -69,11 +69,11 @@ public class Duelist implements Runnable {
     }
 
     public boolean isCoolDownActive() {
-        return SeleniumUtils.getWebElement(duelistDriver, coolDownMessageLocator) != null;
+        return SeleniumUtils.getWebElement(duelistDriver, COOL_DOWN_MESSAGE_LOCATOR) != null;
     }
 
     public boolean isNexFreeDuelAvailable() {
-        return SeleniumUtils.getWebElement(duelistDriver, battleEndGotMoreButtonLocator) != null;
+        return SeleniumUtils.getWebElement(duelistDriver, BATTLE_END_GOT_MORE_BUTTON_LOCATOR) != null;
     }
 
     public void killEmAll() {
@@ -97,8 +97,8 @@ public class Duelist implements Runnable {
             LOG.info(Utils.getMessage("duelist.info.comparingOpponent.NoMoreTries", opponentsBoundary));
             return false;
         }
-        Integer heroStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, heroStatsLocator);
-        Integer opponentStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, opponentStatsLocator);
+        Integer heroStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, HERO_STATS_LOCATOR);
+        Integer opponentStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, OPPONENT_STATS_LOCATOR);
         boolean result = calculateHeroCap(heroStrength) < opponentStrength;
         LOG.info(Utils.getMessage("duelist.info.comparingOpponent",
                 opponentSkipCount,
@@ -115,24 +115,24 @@ public class Duelist implements Runnable {
 
     private void findNewOpponent() {
         LOG.info(Utils.getMessage("duelist.info.attemptToFindOpponent.getNext"));
-        SeleniumUtils.getWebElement(duelistDriver, nextBattleButtonLocator).click();
+        SeleniumUtils.getWebElement(duelistDriver, NEXT_BATTLE_BUTTON_LOCATOR).click();
     }
 
     private void startBattle() {
         LOG.info(Utils.getMessage("duelist.info.duel.start"));
-        SeleniumUtils.getWebElement(duelistDriver, duelToBattleButtonLocator).click();
+        SeleniumUtils.getWebElement(duelistDriver, DUEL_TO_BATTLE_BUTTON_LOCATOR).click();
     }
 
     private void getNextFreeDuel() {
         LOG.info(Utils.getMessage("duelist.info.duel.next"));
-        SeleniumUtils.getWebElement(duelistDriver, battleEndGotMoreButtonLocator).click();
+        SeleniumUtils.getWebElement(duelistDriver, BATTLE_END_GOT_MORE_BUTTON_LOCATOR).click();
     }
 
     private void defeatThatGuy() {
         while (!isNexFreeDuelAvailable() && !isCoolDownActive()) {
-            List<WebElement> opponentCards = SeleniumUtils.getWebElements(duelistDriver, opponentCardsButtonLocator);
-            List<WebElement> damageMultipliers = SeleniumUtils.getWebElements(duelistDriver, damageMultiplierButtonLocator);
-            List<WebElement> heroCards = SeleniumUtils.getWebElements(duelistDriver, heroCardsButtonLocator);
+            List<WebElement> opponentCards = SeleniumUtils.getWebElements(duelistDriver, OPPONENT_CARDS_BUTTON_LOCATOR);
+            List<WebElement> damageMultipliers = SeleniumUtils.getWebElements(duelistDriver, DAMAGE_MULTIPLIER_BUTTON_LOCATOR);
+            List<WebElement> heroCards = SeleniumUtils.getWebElements(duelistDriver, HERO_CARDS_BUTTON_LOCATOR);
             List<DuelAttackOption> attackOptions = new ArrayList<>(3);
             for (int i = 0; i < 3; i++) {
                 int opponentStrength = Integer.parseInt(opponentCards.get(i).getText());

@@ -113,6 +113,20 @@ public class SeleniumUtils {
         return result;
     }
 
+    public static Double getDoubleValueFromElementAttribute(WebDriver webDriver, By elementLocator, String attributeName) {
+        WebElement webElement = getWebElement(webDriver, elementLocator);
+        Double result = null;
+        if (webElement != null) {
+            String valueString = webElement.getAttribute(attributeName);
+            if (valueString.contains("K")) {
+                result = Double.valueOf(valueString.substring(0, valueString.length() - 1)) * 1_000;
+            } else {
+                result = Double.valueOf(valueString.replaceAll("[^\\d]", ""));
+            }
+        }
+        return result;
+    }
+
     public static synchronized void takeScreenShot(WebDriver webDriver) {
         String filePath;
         if (OS_NAME.contains("win")) {

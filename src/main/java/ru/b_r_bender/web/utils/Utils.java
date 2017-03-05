@@ -1,14 +1,14 @@
 package ru.b_r_bender.web.utils;
 
+import org.apache.log4j.Logger;
 import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.controller.Duelist;
 import ru.b_r_bender.web.controller.Shopper;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.text.MessageFormat;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Random;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Utility class containing methods to get random delays, to calculate different values so on.
@@ -17,11 +17,23 @@ import java.util.ResourceBundle;
  */
 public class Utils {
 
+    private static final Logger LOG = Logger.getLogger(Utils.class);
+
     private Utils() {
     }
 
     private static Random random = new Random();
     private static ResourceBundle messages = ResourceBundle.getBundle("messages");
+    private static Properties appProperties = new Properties();
+
+    static {
+        try {
+            FileInputStream stream = new FileInputStream("application.properties");
+            appProperties.load(stream);
+        } catch (java.io.IOException e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
 
     /**
      * Method will calculate cool down time for specified <b>pageUri</b> till it will be active again.
@@ -135,5 +147,9 @@ public class Utils {
 
     public static String getMessage(String messageKey, Object... objects) {
         return MessageFormat.format(messages.getString(messageKey), objects);
+    }
+
+    public static String getAppProperty(String key) {
+        return appProperties.getProperty(key);
     }
 }

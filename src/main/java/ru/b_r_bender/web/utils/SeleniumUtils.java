@@ -121,7 +121,7 @@ public class SeleniumUtils {
             if (valueString.contains("K")) {
                 result = Double.valueOf(valueString.substring(0, valueString.length() - 1)) * 1_000;
             } else {
-                result = Double.valueOf(valueString.replaceAll("[^\\d]", ""));
+                result = Double.valueOf(valueString.replaceAll("[^\\d\\.]+", ""));
             }
         }
         return result;

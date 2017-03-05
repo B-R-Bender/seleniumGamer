@@ -9,6 +9,7 @@ import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -18,13 +19,15 @@ public class DeckManager implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(DeckManager.class);
 
-    public static final String DECK_PAGE_URI = "http://elem.mobi/deck/";
+    public static final String PLAY_DECK_PAGE_URI = "http://elem.mobi/deck/";
+    public static final String WEAK_DECK_PAGE_URI = "http://elem.mobi/weakcards/";
 
-    private static final By PLAY_DECK_CARDS_LOCATOR = By.cssSelector("a[class='card'][href*='/card/']");
+    private static final By DECK_CARDS_LOCATOR = By.cssSelector("a[class='card'][href*='/card/']");
 
     private WebDriver managerDriver;
     private List<PlayCard> playDeck;
     private List<PlayCard> weakDeck;
+    private boolean weakCardsAvailable;
 
     {
         playDeck = new ArrayList<>(9);
@@ -33,41 +36,67 @@ public class DeckManager implements Runnable {
 
     public DeckManager(WebDriver webDriver) {
         LOG.info(Utils.getMessage("deckManager.info.created"));
-        managerDriver = SeleniumUtils.cloneDriverInstance(webDriver, DECK_PAGE_URI);
+        managerDriver = SeleniumUtils.cloneDriverInstance(webDriver, PLAY_DECK_PAGE_URI);
         updatePlayDeck();
         updateWeakDeck();
     }
 
     private void updatePlayDeck() {
-        List<WebElement> cardElements = SeleniumUtils.getWebElements(managerDriver, PLAY_DECK_CARDS_LOCATOR);
-        for (WebElement cardElement : cardElements) {
+        for (int i = 0; i < 9; i++) {
+            WebElement cardElement = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR).get(i);
             cardElement.click();
             playDeck.add(new PlayCard(managerDriver));
             managerDriver.navigate().back();
         }
+        Collections.sort(playDeck);
     }
 
     private void updateWeakDeck() {
-
+        managerDriver.get(WEAK_DECK_PAGE_URI);
+        List<WebElement> cardElement = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR);
+        weakCardsAvailable = cardElement.size() != 0;
+        managerDriver.navigate().back();
     }
 
     @Override
     public void run() {
         LOG.info(Utils.getMessage("deckManager.info.thread.start"));
         while (true) {
-            if (hasMoreAvailableWeakCards()) {
-
+            if (weakCardsAvailable) {
+                upgradeDeck();
             } else {
                 rest();
             }
         }
     }
 
-    private boolean hasMoreAvailableWeakCards() {
-        return false;
+    private void upgradeDeck() {
+        for (int i = 0; i < 9; i++) {
+            PlayCard card = playDeck.get(i);
+            managerDriver.get(card.getCardUrl());
+            if (card.getLevelProgress() == 100d) {
+                card.upgrade(managerDriver);
+            }
+            while (card.isAbsorptionAvailable(managerDriver)) {
+                card.absorbWeakCards(managerDriver);
+                if (card.getLevelProgress() == 100d) {
+                    card.upgrade(managerDriver);
+                }
+            }
+        }
+        weakCardsAvailable = false;
     }
 
     private void rest() {
-
+        try {
+            long coolDownTime = Utils.calculateElementCoolDownTime(PLAY_DECK_PAGE_URI, null);
+//            LOG.info(Utils.getMessage("shopper.info.shop.notEnoughMoney", coolDownTime));
+            Thread.sleep(coolDownTime);
+            updatePlayDeck();
+            updateWeakDeck();
+//            LOG.info(Utils.getMessage("shopper.info.shop.gotMoreMoney"));
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 }

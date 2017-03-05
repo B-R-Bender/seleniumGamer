@@ -10,15 +10,15 @@ import java.util.List;
 /**
  * @author BRBender created on 02.03.2017.
  */
-public class PlayCard {
+public class PlayCard implements Comparable<PlayCard> {
 
     private static final By CARD_STRENGTH_LOCATOR = By.cssSelector(".pt10.small");
     private static final By CARD_LEVEL_LOCATOR = By.cssSelector(".pt5.small");
     private static final By CARD_ATTRIBUTES_LOCATOR = By.cssSelector(".pt5.small");
     private static final By LEVEL_PROGRESS_LOCATOR = By.cssSelector(".rate.blue");
     private static final By ABSORB_WEAK_LOCATOR = By.cssSelector("a[href*='mergeall']");
-    private static final By UPGRADE_CARD_LOCATOR = By.cssSelector("a[href*='improve']");
-    private static final By UPGRADE_CARD_CONFIRM_LOCATOR = By.cssSelector("a[href*='confirmed']");
+    private static final By UPGRADE_CARD_LOCATOR = By.cssSelector("a[class*='w180px'][href*='improve']");
+    private static final By UPGRADE_CARD_CONFIRM_LOCATOR = By.cssSelector("a[class*='w100px'][href*='confirmed']");
     private static final By UPGRADE_CARD_SUCCESS_LOCATOR = By.cssSelector(".msg.green.mt5");
 
     private static final String CARD_ATTRIBUTES_IN_PLAY_DECK = "В колоде";
@@ -31,6 +31,10 @@ public class PlayCard {
     private boolean isInPlayDeck;
     private boolean isProtected;
     private double levelProgress;
+    private int cardStrengthAt40;
+
+    private PlayCard() {
+    }
 
     public PlayCard(WebDriver managerDriver) {
         //TODO: добавить проверку урла на корректность
@@ -42,6 +46,12 @@ public class PlayCard {
         this.isInPlayDeck = webElements.get(1).getText().equals(CARD_ATTRIBUTES_IN_PLAY_DECK);
         this.isProtected = webElements.get(2).getText().equals(CARD_ATTRIBUTES_PROTECTED);
         this.levelProgress = SeleniumUtils.getDoubleValueFromElementAttribute(managerDriver, LEVEL_PROGRESS_LOCATOR, LEVEL_PROGRESS_ATTRIBUTE_NAME);
+        this.cardStrengthAt40 = calculateBasicStrength();
+    }
+
+    public boolean isAbsorptionAvailable(WebDriver managerDriver) {
+        WebElement absorbElement = SeleniumUtils.getWebElement(managerDriver, ABSORB_WEAK_LOCATOR);
+        return absorbElement != null;
     }
 
     public boolean absorbWeakCards(WebDriver managerDriver) {
@@ -62,6 +72,7 @@ public class PlayCard {
             return false;
         } else {
             absorbElement.click();
+            this.levelProgress = SeleniumUtils.getDoubleValueFromElementAttribute(managerDriver, LEVEL_PROGRESS_LOCATOR, LEVEL_PROGRESS_ATTRIBUTE_NAME);
             return true;
         }
     }
@@ -79,11 +90,30 @@ public class PlayCard {
     }
 
     private boolean performUpgrade(WebDriver managerDriver) {
-        SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_LOCATOR).click();
+        while (SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_SUCCESS_LOCATOR) == null
+                && SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_CONFIRM_LOCATOR) == null){
+            SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_LOCATOR).click();
+        }
         if ((cardLevel + 1) % 5 == 0) {
             SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_CONFIRM_LOCATOR).click();
         }
+        this.cardLevel = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_LEVEL_LOCATOR);
+        this.levelProgress = SeleniumUtils.getDoubleValueFromElementAttribute(managerDriver, LEVEL_PROGRESS_LOCATOR, LEVEL_PROGRESS_ATTRIBUTE_NAME);
         return SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_SUCCESS_LOCATOR) != null;
+    }
+
+    private int calculateBasicStrength(){
+        return downgradeTo40(this.clone());
+    }
+
+    private int downgradeTo40(PlayCard card) {
+        if (card.cardLevel <= 40) {
+            return card.cardStrength;
+        }
+
+        card.cardStrength = card.cardLevel % 5 == 0 ? card.cardStrength - 160 : card.cardStrength - 40;
+        card.cardLevel--;
+        return downgradeTo40(card);
     }
 
     @Override
@@ -91,9 +121,9 @@ public class PlayCard {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        PlayCard playCard = (PlayCard) o;
+        PlayCard that = (PlayCard) o;
 
-        return cardUrl.equals(playCard.cardUrl);
+        return this.cardStrength == that.cardStrength && this.cardLevel == that.cardLevel;
     }
 
     @Override
@@ -110,7 +140,32 @@ public class PlayCard {
         return result;
     }
 
+    @Override
+    public int compareTo(PlayCard that) {
+        return that.cardStrengthAt40 - this.cardStrengthAt40;
+    }
+
+    @Override
+    protected PlayCard clone() {
+        PlayCard playCard = new PlayCard();
+        playCard.cardUrl = this.cardUrl;
+        playCard.cardStrength = this.cardStrength;
+        playCard.cardLevel = this.cardLevel;
+        playCard.isInPlayDeck = this.isInPlayDeck;
+        playCard.isProtected = this.isProtected;
+        playCard.levelProgress = this.levelProgress;
+        return playCard;
+    }
+
     //геттеры и сеттеры
+    public String getCardUrl() {
+        return cardUrl;
+    }
+
+    public double getLevelProgress() {
+        return levelProgress;
+    }
+
     public boolean isProtected() {
         return isProtected;
     }

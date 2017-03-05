@@ -2,6 +2,7 @@ package ru.b_r_bender.web.utils;
 
 import org.apache.log4j.Logger;
 import org.openqa.selenium.WebElement;
+import ru.b_r_bender.web.controller.DeckManager;
 import ru.b_r_bender.web.controller.Duelist;
 import ru.b_r_bender.web.controller.Shopper;
 
@@ -75,6 +76,8 @@ public class Utils {
                         + getMediumDelay();
             case Shopper.MARKET_PAGE_URI:
                 return 9_600_000 + getLongDelay();
+            case DeckManager.PLAY_DECK_PAGE_URI:
+                return 10_600_000 + getLongDelay();
             default:
                 return 3_600_000 + getLongDelay();
         }

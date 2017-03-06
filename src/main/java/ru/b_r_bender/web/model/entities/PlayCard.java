@@ -20,6 +20,8 @@ public class PlayCard implements Comparable<PlayCard> {
     private static final By UPGRADE_CARD_LOCATOR = By.cssSelector("a[class*='w180px'][href*='improve']");
     private static final By UPGRADE_CARD_CONFIRM_LOCATOR = By.cssSelector("a[class*='w100px'][href*='confirmed']");
     private static final By UPGRADE_CARD_SUCCESS_LOCATOR = By.cssSelector(".msg.green.mt5");
+    private static final By GOLD_LOCATOR = By.cssSelector(".c_gold");
+    private static final By UPGRADE_COST_LOCATOR = By.xpath("//*[text()[contains(.,'Поднять уровень')]]");
 
     private static final String CARD_ATTRIBUTES_IN_PLAY_DECK = "В колоде";
     private static final String CARD_ATTRIBUTES_PROTECTED = "Защищена";
@@ -94,21 +96,23 @@ public class PlayCard implements Comparable<PlayCard> {
                 && SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_CONFIRM_LOCATOR) == null){
             SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_LOCATOR).click();
         }
-        if ((cardLevel + 1) % 5 == 0 && sufficientFounds()) {
+        if ((cardLevel + 1) % 5 == 0 && sufficientFounds(managerDriver)) {
             SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_CONFIRM_LOCATOR).click();
         }
+        SeleniumUtils.refresh(managerDriver);
         this.cardLevel = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_LEVEL_LOCATOR);
         this.levelProgress = SeleniumUtils.getDoubleValueFromElementAttribute(managerDriver, LEVEL_PROGRESS_LOCATOR, LEVEL_PROGRESS_ATTRIBUTE_NAME);
         this.cardStrength = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_STRENGTH_LOCATOR);
-        if (this.levelProgress == 100d) {
+        if (SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_SUCCESS_LOCATOR) != null && this.levelProgress == 100d) {
             performUpgrade(managerDriver);
         }
         return SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_SUCCESS_LOCATOR) != null;
     }
 
-    //MYTODO [Homenko] реализовать проверку на достаточность средств для апгрейда карты
-    private boolean sufficientFounds() {
-        return true;
+    private boolean sufficientFounds(WebDriver managerDriver) {
+        Integer heroGold = SeleniumUtils.getIntValueFromElement(managerDriver, GOLD_LOCATOR);
+        Integer upgradeCost = SeleniumUtils.getIntValueFromElementByIndex(managerDriver, UPGRADE_COST_LOCATOR, 0);
+        return heroGold >= upgradeCost;
     }
 
     private int calculateBasicStrength(){

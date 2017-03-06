@@ -99,10 +99,14 @@ public class SeleniumUtils {
     }
 
     public static Integer getIntValueFromElement(WebDriver webDriver, By elementLocator) {
+        return getIntValueFromElementByIndex(webDriver, elementLocator, 0);
+    }
+
+    public static Integer getIntValueFromElementByIndex(WebDriver webDriver, By elementLocator, int valuedIndex) {
         WebElement webElement = getWebElement(webDriver, elementLocator);
         Integer result = null;
         if (webElement != null) {
-            String valueString = webElement.getText();
+            String valueString = webElement.getText().split("\n")[valuedIndex];
             if (valueString.contains("K")) {
                 Double parsedDouble = Double.valueOf(valueString.substring(0, valueString.length() - 1)) * 1_000;
                 result = parsedDouble.intValue();

@@ -94,13 +94,21 @@ public class PlayCard implements Comparable<PlayCard> {
                 && SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_CONFIRM_LOCATOR) == null){
             SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_LOCATOR).click();
         }
-        if ((cardLevel + 1) % 5 == 0) {
+        if ((cardLevel + 1) % 5 == 0 && sufficientFounds()) {
             SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_CONFIRM_LOCATOR).click();
         }
         this.cardLevel = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_LEVEL_LOCATOR);
         this.levelProgress = SeleniumUtils.getDoubleValueFromElementAttribute(managerDriver, LEVEL_PROGRESS_LOCATOR, LEVEL_PROGRESS_ATTRIBUTE_NAME);
         this.cardStrength = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_STRENGTH_LOCATOR);
+        if (this.levelProgress == 100d) {
+            performUpgrade(managerDriver);
+        }
         return SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_SUCCESS_LOCATOR) != null;
+    }
+
+    //MYTODO [Homenko] реализовать проверку на достаточность средств для апгрейда карты
+    private boolean sufficientFounds() {
+        return true;
     }
 
     private int calculateBasicStrength(){

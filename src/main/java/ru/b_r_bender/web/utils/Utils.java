@@ -77,7 +77,7 @@ public class Utils {
             case Shopper.MARKET_PAGE_URI:
                 return 9_600_000 + getLongDelay();
             case DeckManager.PLAY_DECK_PAGE_URI:
-                return 10_600_000 + getLongDelay();
+                return 5_600_000 + getLongDelay();
             default:
                 return 3_600_000 + getLongDelay();
         }
@@ -145,6 +145,17 @@ public class Utils {
 
     public static String getMessage(String messageKey) {
         return messages.getString(messageKey);
+    }
+
+    public static <T extends Collection> String getMessage(String messageKey, T collection) {
+        Iterator iterator = collection.iterator();
+        String result = "\n" + "---||---|Collection start|---||---" + "\n";
+        while (iterator.hasNext()) {
+            result += iterator.next().toString();
+            result += "\n";
+        }
+        result += "---||---|Collection end|---||---";
+        return getMessage(messageKey, result);
     }
 
     public static String getMessage(String messageKey, Object... objects) {

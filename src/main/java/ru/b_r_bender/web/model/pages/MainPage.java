@@ -3,6 +3,8 @@ package ru.b_r_bender.web.model.pages;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import ru.b_r_bender.web.controller.DeckManager;
+import ru.b_r_bender.web.controller.Duelist;
+import ru.b_r_bender.web.controller.Shopper;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 
 /**
@@ -42,10 +44,10 @@ public class MainPage extends AbstractPage {
     }
 
     public void go() {
-//        Thread duelThread = new Thread(new Duelist(webDriver, duelAvailable), "Duelist Thread");
-//        duelThread.start();
-//        Thread shopThread = new Thread(new Shopper(webDriver), "Shopper Thread");
-//        shopThread.start();
+        Thread duelThread = new Thread(new Duelist(webDriver, duelAvailable), "Duelist Thread");
+        duelThread.start();
+        Thread shopThread = new Thread(new Shopper(webDriver), "Shopper Thread");
+        shopThread.start();
         Thread deckManagerThread = new Thread(new DeckManager(webDriver), "DeckManager Thread");
         deckManagerThread.start();
     }

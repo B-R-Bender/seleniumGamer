@@ -38,24 +38,31 @@ public class DeckManager implements Runnable {
         LOG.info(Utils.getMessage("deckManager.info.created"));
         managerDriver = SeleniumUtils.cloneDriverInstance(webDriver, PLAY_DECK_PAGE_URI);
         updatePlayDeck();
-        updateWeakDeck();
+        isSomeWeakCardsAvailable();
     }
 
     private void updatePlayDeck() {
+        LOG.info(Utils.getMessage("deckManager.info.deck.updatePlayDeck"));
+        if (!managerDriver.getCurrentUrl().equals(PLAY_DECK_PAGE_URI)) {
+            managerDriver.get(PLAY_DECK_PAGE_URI);
+        }
         for (int i = 0; i < 9; i++) {
             WebElement cardElement = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR).get(i);
             cardElement.click();
             playDeck.add(new PlayCard(managerDriver));
             managerDriver.navigate().back();
         }
+        LOG.info(Utils.getMessage("deckManager.info.deck.heroPlayDeck", playDeck));
         Collections.sort(playDeck);
     }
 
-    private void updateWeakDeck() {
+    private void isSomeWeakCardsAvailable() {
+        LOG.info(Utils.getMessage("deckManager.info.deck.checkWeakDeck"));
         managerDriver.get(WEAK_DECK_PAGE_URI);
         List<WebElement> cardElement = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR);
         weakCardsAvailable = cardElement.size() != 0;
         managerDriver.navigate().back();
+        LOG.info(Utils.getMessage("deckManager.info.deck.weakCardsAvailable", weakCardsAvailable));
     }
 
     @Override
@@ -63,7 +70,6 @@ public class DeckManager implements Runnable {
         LOG.info(Utils.getMessage("deckManager.info.thread.start"));
         while (true) {
             if (weakCardsAvailable) {
-                LOG.info("Досутпны слабые карты, будем пытаться апгрейдить колоду");
                 upgradeDeck();
             } else {
                 rest();
@@ -72,22 +78,30 @@ public class DeckManager implements Runnable {
     }
 
     private void upgradeDeck() {
+        LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.start"));
         for (int i = 0; i < 9; i++) {
             PlayCard card = playDeck.get(i);
-            LOG.info("Берем карту №" + i + " -> " + card);
+            LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.currentCard", i, card));
             managerDriver.get(card.getCardUrl());
             if (card.getLevelProgress() == 100d) {
-                LOG.info("Запускаем апгрейд");
-                card.upgrade(managerDriver);
+                LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.cardLevelProgressIsFull"));
+                boolean upgradeResult = card.upgrade(managerDriver);
+                String logMessage = upgradeResult
+                        ? "deckManager.info.deck.upgrade.success"
+                        : "deckManager.info.deck.upgrade.failure";
+                LOG.info(Utils.getMessage(logMessage, card));
             }
             while (card.isAbsorptionAvailable(managerDriver)) {
-                LOG.info("Для карты доступна прочкачка слабыми картами - запускаем процесс");
+                LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.weakCardsAvailable"));
                 card.absorbWeakCards(managerDriver);
-                LOG.info("Прокачали карту - " + card);
+                LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.cardAfterUpgrade", card));
                 if (card.getLevelProgress() == 100d) {
-                    LOG.info("Уровень заполнен на 100%, пробуем поднять уровень");
-                    card.upgrade(managerDriver);
-                    LOG.info("Карта после попытки прокачки - " + card);
+                    LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.cardLevelProgressIsFull"));
+                    boolean upgradeResult = card.upgrade(managerDriver);
+                    String logMessage = upgradeResult
+                            ? "deckManager.info.deck.upgrade.success"
+                            : "deckManager.info.deck.upgrade.failure";
+                    LOG.info(Utils.getMessage(logMessage, card));
                 }
             }
         }
@@ -97,13 +111,11 @@ public class DeckManager implements Runnable {
     private void rest() {
         try {
             long coolDownTime = Utils.calculateElementCoolDownTime(PLAY_DECK_PAGE_URI, null);
-            LOG.info("Один проход менеджера колоды завершен ложимся спать на " + coolDownTime + " мс.");
-//            LOG.info(Utils.getMessage("shopper.info.shop.notEnoughMoney", coolDownTime));
+            LOG.info(Utils.getMessage("deckManager.info.deck.manager.sleep", coolDownTime));
             Thread.sleep(coolDownTime);
-            LOG.info("Отоспался, сейчас обновим колоды и вперед");
+            LOG.info(Utils.getMessage("deckManager.info.deck.manager.wake"));
             updatePlayDeck();
-            updateWeakDeck();
-//            LOG.info(Utils.getMessage("shopper.info.shop.gotMoreMoney"));
+            isSomeWeakCardsAvailable();
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
         }

@@ -3,6 +3,7 @@ package ru.b_r_bender.web.controller;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import ru.b_r_bender.web.controller.utils.ShopperStrategy;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
 
@@ -18,6 +19,10 @@ public class Shopper implements Runnable {
     private static final By SILVER_LOCATOR = By.cssSelector(".c_silver");
     private static final By GOLD_LOCATOR = By.cssSelector(".c_gold");
     private static final By BY_CARD_FOR_SILVER_BUTTON_LOCATOR = By.cssSelector("a[href*='/shop/cards/buy/1100/']");
+
+    private static final int RARE_CARD_VALUE = 500;
+    private static final int LEGEND_CARD_VALUE = 20;
+    private static final int MYTH_CARD_VALUE = 120;
 
     private WebDriver shopperDriver;
     private int heroEnergy;
@@ -40,16 +45,20 @@ public class Shopper implements Runnable {
     @Override
     public void run() {
         LOG.info(Utils.getMessage("shopper.info.thread.start"));
-        int possibleAmountOfCardsToBy = heroSilver / 500;
+        int preferredAmountOfCardsToBy = howMuchCardsICanBuy(heroSilver, RARE_CARD_VALUE);
         while (true) {
-            if (possibleAmountOfCardsToBy > 0) {
-                letsGoShopping(possibleAmountOfCardsToBy);
+            if (preferredAmountOfCardsToBy > 0) {
+                letsGoShopping(preferredAmountOfCardsToBy);
             } else {
                 rest();
             }
             updateTreasury();
-            possibleAmountOfCardsToBy = heroSilver / 500;
+            preferredAmountOfCardsToBy = howMuchCardsICanBuy(heroSilver, RARE_CARD_VALUE);
         }
+    }
+
+    private int howMuchCardsICanBuy(int moneyAmount, int cardValue) {
+        return cardValue > 0 ? ShopperStrategy.lightSavingShopper(heroEnergy) / cardValue :  0;
     }
 
     private void letsGoShopping(int possibleAmountOfCardsToBy) {

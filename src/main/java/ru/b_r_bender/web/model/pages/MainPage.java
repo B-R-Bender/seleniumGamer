@@ -2,6 +2,7 @@ package ru.b_r_bender.web.model.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.controller.DeckManager;
 import ru.b_r_bender.web.controller.Duelist;
 import ru.b_r_bender.web.controller.Shopper;
@@ -13,12 +14,13 @@ import ru.b_r_bender.web.utils.SeleniumUtils;
 public class MainPage extends AbstractPage {
 
     public static final String MAIN_PAGE_URI = "http://elem.mobi/";
-    private static final String MAIN_PAGE_DISABLE_FLAG = "disable";
 
     private static final By DUEL_LOCATOR = By.cssSelector(".bttn.duels");
     private static final By DUNGEON_LOCATOR = By.cssSelector(".bttn.campaign");
     private static final By URFIN_LOCATOR = By.cssSelector(".bttn.urfin");
     private static final By TOURNAMENT_LOCATOR = By.cssSelector(".bttn.urfin");
+
+    private static final String MAIN_PAGE_DISABLE_FLAG = "disable";
 
     private boolean duelAvailable;
     private boolean dungeonAvailable;

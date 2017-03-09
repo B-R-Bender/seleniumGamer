@@ -58,7 +58,7 @@ public class Shopper implements Runnable {
     }
 
     private int howMuchCardsCanIBuy(int moneyAmount, int cardValue) {
-        return cardValue > 0 ? ShopperStrategy.lightSavingShopper(heroEnergy) / cardValue :  0;
+        return cardValue > 0 ? ShopperStrategy.lightSavingShopper(moneyAmount) / cardValue :  0;
     }
 
     private void letsGoShopping(int possibleAmountOfCardsToBy) {

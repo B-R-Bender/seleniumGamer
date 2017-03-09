@@ -92,12 +92,15 @@ public class PlayCard implements Comparable<PlayCard> {
     }
 
     private boolean performUpgrade(WebDriver managerDriver) {
+        boolean upgradeSuccess = false;
         while (SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_SUCCESS_LOCATOR) == null
                 && SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_CONFIRM_LOCATOR) == null){
             SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_LOCATOR).click();
+            upgradeSuccess = true;
         }
         if ((cardLevel + 1) % 5 == 0 && sufficientFounds(managerDriver)) {
             SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_CONFIRM_LOCATOR).click();
+            upgradeSuccess = true;
         }
         SeleniumUtils.refresh(managerDriver);
         this.cardLevel = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_LEVEL_LOCATOR);
@@ -106,7 +109,7 @@ public class PlayCard implements Comparable<PlayCard> {
         if (SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_SUCCESS_LOCATOR) != null && this.levelProgress == 100d) {
             performUpgrade(managerDriver);
         }
-        return SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_SUCCESS_LOCATOR) != null;
+        return upgradeSuccess;
     }
 
     private boolean sufficientFounds(WebDriver managerDriver) {

@@ -45,7 +45,7 @@ public class Shopper implements Runnable {
     @Override
     public void run() {
         LOG.info(Utils.getMessage("shopper.info.thread.start"));
-        int preferredAmountOfCardsToBy = howMuchCardsICanBuy(heroSilver, RARE_CARD_VALUE);
+        int preferredAmountOfCardsToBy = howMuchCardsCanIBuy(heroSilver, RARE_CARD_VALUE);
         while (true) {
             if (preferredAmountOfCardsToBy > 0) {
                 letsGoShopping(preferredAmountOfCardsToBy);
@@ -53,11 +53,11 @@ public class Shopper implements Runnable {
                 rest();
             }
             updateTreasury();
-            preferredAmountOfCardsToBy = howMuchCardsICanBuy(heroSilver, RARE_CARD_VALUE);
+            preferredAmountOfCardsToBy = howMuchCardsCanIBuy(heroSilver, RARE_CARD_VALUE);
         }
     }
 
-    private int howMuchCardsICanBuy(int moneyAmount, int cardValue) {
+    private int howMuchCardsCanIBuy(int moneyAmount, int cardValue) {
         return cardValue > 0 ? ShopperStrategy.lightSavingShopper(heroEnergy) / cardValue :  0;
     }
 

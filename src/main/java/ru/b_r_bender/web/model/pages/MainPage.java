@@ -1,17 +1,19 @@
 package ru.b_r_bender.web.model.pages;
 
+import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.controller.DeckManager;
 import ru.b_r_bender.web.controller.Duelist;
+import ru.b_r_bender.web.controller.RewardCollector;
 import ru.b_r_bender.web.controller.Shopper;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 
 /**
- * @author Homenko created on 28.02.2017.
+ * @author BRBender created on 28.02.2017.
  */
 public class MainPage extends AbstractPage {
+    private static final Logger LOG = Logger.getLogger(MainPage.class);
 
     public static final String MAIN_PAGE_URI = "http://elem.mobi/";
 
@@ -29,16 +31,20 @@ public class MainPage extends AbstractPage {
 
     MainPage(WebDriver webDriver) {
         super(webDriver, MAIN_PAGE_URI);
-        initPage();
     }
 
     @Override
     void initPage() {
-        reloadPage();
-        duelAvailable = checkElementAvailability(DUEL_LOCATOR);
-        dungeonAvailable = checkElementAvailability(DUNGEON_LOCATOR);
-        urfinAvailable = checkElementAvailability(URFIN_LOCATOR);
-        tournamentAvailable = checkElementAvailability(TOURNAMENT_LOCATOR);
+        try {
+            Thread.sleep(20_000);
+            reloadPage();
+            duelAvailable = checkElementAvailability(DUEL_LOCATOR);
+            dungeonAvailable = checkElementAvailability(DUNGEON_LOCATOR);
+            urfinAvailable = checkElementAvailability(URFIN_LOCATOR);
+            tournamentAvailable = checkElementAvailability(TOURNAMENT_LOCATOR);
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 
     private boolean checkElementAvailability(By elementLocator) {
@@ -46,11 +52,14 @@ public class MainPage extends AbstractPage {
     }
 
     public void go() {
+        Thread rewardCollectorThread = new Thread(new RewardCollector(webDriver), "Reward Collector Thread");
+        rewardCollectorThread.start();
+        initPage();
         Thread duelThread = new Thread(new Duelist(webDriver, duelAvailable), "Duelist Thread");
         duelThread.start();
         Thread shopThread = new Thread(new Shopper(webDriver), "Shopper Thread");
         shopThread.start();
-        Thread deckManagerThread = new Thread(new DeckManager(webDriver), "DeckManager Thread");
+        Thread deckManagerThread = new Thread(new DeckManager(webDriver), "Deck Manager Thread");
         deckManagerThread.start();
     }
 }

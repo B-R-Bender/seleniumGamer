@@ -43,7 +43,6 @@ public class Duelist implements Runnable {
         while (true) {
             if (duelAvailable) {
                 killEmAll();
-                SeleniumUtils.takeScreenShot(duelistDriver);
                 if (isNexFreeDuelAvailable()) {
                     getNextFreeDuel();
                 }
@@ -80,7 +79,7 @@ public class Duelist implements Runnable {
         int opponentSkipCount = 0;
         int opponentsBoundary = Utils.skippedOpponentsBoundary();
         LOG.info(Utils.getMessage("duelist.info.attemptToFindOpponent", opponentsBoundary));
-        while (opponentIsToStrong(opponentSkipCount++, opponentsBoundary)) {
+        while (opponentRequirementsDoesNotMatch(opponentSkipCount++, opponentsBoundary)) {
             try {
                 Thread.sleep(Utils.getSuperShortDelay());
             } catch (InterruptedException e) {
@@ -92,14 +91,15 @@ public class Duelist implements Runnable {
         defeatThatGuy();
     }
 
-    private boolean opponentIsToStrong(int opponentSkipCount, int opponentsBoundary) {
+    private boolean opponentRequirementsDoesNotMatch(int opponentSkipCount, int opponentsBoundary) {
         if (opponentSkipCount == opponentsBoundary) {
             LOG.info(Utils.getMessage("duelist.info.comparingOpponent.NoMoreTries", opponentsBoundary));
             return false;
         }
         Integer heroStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, HERO_STATS_LOCATOR);
         Integer opponentStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, OPPONENT_STATS_LOCATOR);
-        boolean result = calculateHeroCap(heroStrength) < opponentStrength;
+        boolean result = opponentStrength < calculatedMinOpponentStrength(heroStrength)
+                            || opponentStrength > calculatedMaxOpponentStrength(heroStrength);
         LOG.info(Utils.getMessage("duelist.info.comparingOpponent",
                 opponentSkipCount,
                 heroStrength,
@@ -108,9 +108,13 @@ public class Duelist implements Runnable {
         return result;
     }
 
-    private Integer calculateHeroCap(final Integer heroStrength) {
-        Integer cap = heroStrength;
-        return cap += new Long(Math.round(cap * 0.07)).intValue();
+    private int calculatedMaxOpponentStrength(final int heroStrength) {
+        return heroStrength + new Long(Math.round(heroStrength * 0.08)).intValue();
+    }
+
+    private int calculatedMinOpponentStrength(final int heroStrength) {
+//        return heroStrength - new Long(Math.round(heroStrength * 0.05)).intValue();
+        return heroStrength + new Long(Math.round(heroStrength * 0.01)).intValue();
     }
 
     private void findNewOpponent() {

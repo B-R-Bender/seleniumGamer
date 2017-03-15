@@ -11,7 +11,9 @@ import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Utility class to interact with Selenium Web-Driver
@@ -21,6 +23,8 @@ import java.util.List;
 public class SeleniumUtils {
 
     private static final String OS_NAME = System.getProperty("os.name").toLowerCase();;
+
+    private static final By SERVER_TIME_LOCATOR = By.cssSelector("#server_time");
 
     private static volatile int screenShotCounter;
     private static List<WebDriver> createdDrivers = new ArrayList<>();
@@ -90,12 +94,7 @@ public class SeleniumUtils {
         if (refreshRequired) {
             webDriver.navigate().refresh();
         }
-        List<WebElement> elements = webDriver.findElements(elementLocator);
-        if (elements.size() == 0) {
-            return null;
-        } else {
-            return elements;
-        }
+        return webDriver.findElements(elementLocator);
     }
 
     public static Integer getIntValueFromElement(WebDriver webDriver, By elementLocator) {
@@ -149,5 +148,22 @@ public class SeleniumUtils {
             //MYTODO [Homenko] допилить обработку ошибок
             e.printStackTrace();
         }
+    }
+
+    public static Calendar getServerTime(WebDriver webDriver) {
+        String serverTimeString = SeleniumUtils.getWebElement(webDriver, SERVER_TIME_LOCATOR).getText();
+        String[] timeFragments = serverTimeString.split(":");
+
+        int hours = Integer.parseInt(timeFragments[0]);
+        int minutes = Integer.parseInt(timeFragments[1]);
+        int seconds = Integer.parseInt(timeFragments[2]);
+
+        Calendar serverTime = Calendar.getInstance();
+        serverTime.setTimeZone(TimeZone.getTimeZone("Europe/Moscow"));
+        serverTime.set(Calendar.HOUR_OF_DAY, hours);
+        serverTime.set(Calendar.MINUTE, minutes);
+        serverTime.set(Calendar.SECOND, seconds);
+
+        return serverTime;
     }
 }

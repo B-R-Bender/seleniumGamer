@@ -11,6 +11,16 @@ public class ShopperStrategy {
     }
 
     /**
+     * This strategy will allowed to spend only modulus from hero money divided by 50_000 and still more 20% of the rest
+     * @param heroMoney total hero money value
+     * @return how much money Shopper can spend
+     */
+    public static int hundredsOfThousandsSavingShopper(int heroMoney) {
+        heroMoney = heroMoney - heroMoney / 50_000 * 50_000;
+        return shopperCalculations(heroMoney, 0.2);
+    }
+
+    /**
      * This strategy will save 20% of all Hero money
      * @param heroMoney total hero money value
      * @return how much money Shopper can spend

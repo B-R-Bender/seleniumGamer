@@ -45,27 +45,22 @@ public class Shopper implements Runnable {
     @Override
     public void run() {
         LOG.info(Utils.getMessage("shopper.info.thread.start"));
-        int preferredAmountOfCardsToBy = howMuchCardsCanIBuy(heroSilver, RARE_CARD_VALUE);
         while (true) {
-            if (preferredAmountOfCardsToBy > 0) {
-                letsGoShopping(preferredAmountOfCardsToBy);
-            } else {
-                rest();
-            }
+            letsGoShopping(howMuchCardsCanIBuy(heroSilver, RARE_CARD_VALUE));
+            rest();
             updateTreasury();
-            preferredAmountOfCardsToBy = howMuchCardsCanIBuy(heroSilver, RARE_CARD_VALUE);
         }
     }
 
     private int howMuchCardsCanIBuy(int moneyAmount, int cardValue) {
-        return cardValue > 0 ? ShopperStrategy.lightSavingShopper(moneyAmount) / cardValue :  0;
+        return cardValue > 0 ? ShopperStrategy.hundredsOfThousandsSavingShopper(moneyAmount) / cardValue : 0;
     }
 
     private void letsGoShopping(int possibleAmountOfCardsToBy) {
         LOG.info(Utils.getMessage("shopper.info.shop.cardsToBy", possibleAmountOfCardsToBy, possibleAmountOfCardsToBy * 500));
         try {
             for (; possibleAmountOfCardsToBy > 0; possibleAmountOfCardsToBy--) {
-                Thread.sleep(Utils.getSuperShortDelay());
+                Thread.sleep(Utils.getShortDelay());
                 SeleniumUtils.getWebElement(shopperDriver, BY_CARD_FOR_SILVER_BUTTON_LOCATOR).click();
             }
         } catch (InterruptedException e) {

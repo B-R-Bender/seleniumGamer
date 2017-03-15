@@ -8,7 +8,9 @@ import ru.b_r_bender.web.model.entities.PlayCard;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
 
+import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,6 +30,8 @@ public class DeckManager implements Runnable {
     private List<PlayCard> playDeck;
     private List<PlayCard> weakDeck;
     private boolean weakCardsAvailable;
+    private int upgradedCardsCount;
+    private Calendar fiveCardsUpgradedTime;
 
     {
         playDeck = new ArrayList<>(9);
@@ -53,8 +57,8 @@ public class DeckManager implements Runnable {
             playDeck.add(new PlayCard(managerDriver));
             managerDriver.navigate().back();
         }
-        LOG.info(Utils.getMessage("deckManager.info.deck.heroPlayDeck", playDeck));
         Collections.sort(playDeck);
+        LOG.info(Utils.getMessage("deckManager.info.deck.heroPlayDeck", playDeck));
     }
 
     private void isSomeWeakCardsAvailable() {
@@ -80,14 +84,15 @@ public class DeckManager implements Runnable {
 
     private void upgradeDeck() {
         LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.start"));
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 6; i++) {
             PlayCard card = playDeck.get(i);
-            LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.currentCard", i, card));
+            LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.currentCard", i + 1, card));
             managerDriver.get(card.getCardUrl());
             if (card.getLevelProgress() == 100d) {
                 LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.cardLevelProgressIsFull"));
-                boolean upgradeResult = card.upgrade(managerDriver);
-                String logMessage = upgradeResult
+                int upgradeResult = card.upgrade(managerDriver);
+                this.upgradedCardsCount += upgradeResult;
+                String logMessage = upgradeResult > 0
                         ? "deckManager.info.deck.upgrade.success"
                         : "deckManager.info.deck.upgrade.failure";
                 LOG.info(Utils.getMessage(logMessage, card));
@@ -98,8 +103,9 @@ public class DeckManager implements Runnable {
                 LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.cardAfterUpgrade", card));
                 if (card.getLevelProgress() == 100d) {
                     LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.cardLevelProgressIsFull"));
-                    boolean upgradeResult = card.upgrade(managerDriver);
-                    String logMessage = upgradeResult
+                    int upgradeResult = card.upgrade(managerDriver);
+                    this.upgradedCardsCount += upgradeResult;
+                    String logMessage = upgradeResult > 0
                             ? "deckManager.info.deck.upgrade.success"
                             : "deckManager.info.deck.upgrade.failure";
                     LOG.info(Utils.getMessage(logMessage, card));

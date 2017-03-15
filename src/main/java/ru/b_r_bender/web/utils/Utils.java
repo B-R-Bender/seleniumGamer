@@ -47,7 +47,7 @@ public class Utils {
 
         int hourCoolDownValue = 0;
         int minuteCoolDownValue = 0;
-        int secondsCoolDownValue =0;
+        int secondsCoolDownValue = 0;
 
         switch (pageUri) {
             case Duelist.DUEL_PAGE_URI:
@@ -75,9 +75,9 @@ public class Utils {
                         + secondsCoolDownValue * 1_000
                         + getMediumDelay();
             case Shopper.MARKET_PAGE_URI:
-                return 9_600_000 + getLongDelay();
+                return 36_000_000 + getLongDelay();
             case DeckManager.PLAY_DECK_PAGE_URI:
-                return 5_600_000 + getLongDelay();
+                return 7_700_700 + getLongDelay();
             default:
                 return 3_600_000 + getLongDelay();
         }
@@ -125,7 +125,7 @@ public class Utils {
      * @return random integer in range 31-53
      */
     public static int skippedOpponentsBoundary() {
-        return random.nextInt(22) + 31;
+        return random.nextInt(32) + 71;
     }
 
     /**

@@ -10,6 +10,7 @@ import ru.b_r_bender.web.utils.Utils;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * @author BRBender created on 07.03.2017.
@@ -48,59 +49,61 @@ public class RewardCollector implements Runnable {
         WebElement dailyRewardElement;
         while ((dailyRewardElement = SeleniumUtils.getWebElement(collectorDriver, MAIN_PAGE_DAILY_REWARD_LOCATOR)) != null) {
             dailyRewardAvailable = true;
-            LOG.info("Ежедневная награда доступна");
+            LOG.info(Utils.getMessage("rewardCollector.info.daily.rewardAvailable"));
             dailyRewardElement.click();
-            LOG.info("Попытался забрать");
+            LOG.info(Utils.getMessage("rewardCollector.info.daily.get"));
         }
-        LOG.info(dailyRewardAvailable ? "Забрал" : "Награды небыло");
+        LOG.info(dailyRewardAvailable
+                ? Utils.getMessage("rewardCollector.info.daily.got")
+                : Utils.getMessage("rewardCollector.info.daily.rewardDoNotAvailable"));
         collectorDriver.get(COLLECTOR_PAGE_URI);
     }
 
     private void collectDailyTasksRewards() {
-        LOG.info("Попытаемся собрать награды за задания");
+        LOG.info(Utils.getMessage("rewardCollector.info.tasks.get"));
         int totalRewardsCollected = 0;
         List<WebElement> rewardElements = SeleniumUtils.getWebElements(collectorDriver, DAILY_TASKS_REWARDS_LOCATOR);
         for (int i = 0; i < rewardElements.size(); i++) {
             SeleniumUtils.getWebElement(collectorDriver, DAILY_TASKS_REWARDS_LOCATOR).click();
             totalRewardsCollected++;
         }
-        LOG.info("Забрал " + totalRewardsCollected + "шт. наград");
+        LOG.info(Utils.getMessage("rewardCollector.info.tasks.got", totalRewardsCollected));
     }
 
     private void sleepTillTasksHarvestTime() {
-        Calendar halfPastEleven = Calendar.getInstance();
-        halfPastEleven.add(Calendar.DAY_OF_MONTH, 1);
-        halfPastEleven.set(Calendar.HOUR_OF_DAY, 0);
-        halfPastEleven.set(Calendar.MINUTE, -5);
-        halfPastEleven.set(Calendar.SECOND, 0);
-        halfPastEleven.set(Calendar.MILLISECOND, 0);
-        Calendar now = Calendar.getInstance();
-        long millisTillHalfPastEleven = halfPastEleven.getTimeInMillis() - now.getTimeInMillis();
-        LOG.info("Спим до без пяти минут двенадцать " + millisTillHalfPastEleven + " мс");
+        Calendar fiveMinutesToTwelve = SeleniumUtils.getServerTime(collectorDriver);
+        fiveMinutesToTwelve.add(Calendar.DAY_OF_MONTH, 1);
+        fiveMinutesToTwelve.set(Calendar.HOUR_OF_DAY, 0);
+        fiveMinutesToTwelve.set(Calendar.MINUTE, -5);
+        fiveMinutesToTwelve.set(Calendar.SECOND, 0);
+        fiveMinutesToTwelve.set(Calendar.MILLISECOND, 0);
+        Calendar now = SeleniumUtils.getServerTime(collectorDriver);
+        long millisTillFiveToTwelve = fiveMinutesToTwelve.getTimeInMillis() - now.getTimeInMillis();
+        LOG.info(Utils.getMessage("rewardCollector.info.sleep.tasks", millisTillFiveToTwelve));
         try {
-            Thread.sleep(millisTillHalfPastEleven);
+            Thread.sleep(millisTillFiveToTwelve);
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
         }
-        LOG.info("Проснулся соберем награды за задания");
+        LOG.info(Utils.getMessage("rewardCollector.info.sleep.awake"));
     }
 
     private void sleepTillNextDay() {
-        Calendar oneMinuteOfTomorrow = Calendar.getInstance();
-        oneMinuteOfTomorrow.add(Calendar.DAY_OF_MONTH, 1);
-        oneMinuteOfTomorrow.set(Calendar.HOUR_OF_DAY, 0);
-        oneMinuteOfTomorrow.set(Calendar.MINUTE, 1);
-        oneMinuteOfTomorrow.set(Calendar.SECOND, 0);
-        oneMinuteOfTomorrow.set(Calendar.MILLISECOND, 0);
-        Calendar now = Calendar.getInstance();
-        long millisTillOneMinuteOfTomorrow = oneMinuteOfTomorrow.getTimeInMillis() - now.getTimeInMillis();
-        LOG.info("Спим до одной минуты первого завтрашнего дня " + millisTillOneMinuteOfTomorrow + " мс");
+        Calendar onePastZero = SeleniumUtils.getServerTime(collectorDriver);
+        onePastZero.add(Calendar.DAY_OF_MONTH, 1);
+        onePastZero.set(Calendar.HOUR_OF_DAY, 0);
+        onePastZero.set(Calendar.MINUTE, 0);
+        onePastZero.set(Calendar.SECOND, 30);
+        onePastZero.set(Calendar.MILLISECOND, 0);
+        Calendar now = SeleniumUtils.getServerTime(collectorDriver);
+        long millisTillOnePastZero = onePastZero.getTimeInMillis() - now.getTimeInMillis();
+        LOG.info(Utils.getMessage("rewardCollector.info.sleep.daily", millisTillOnePastZero));
         try {
-            Thread.sleep(millisTillOneMinuteOfTomorrow);
+            Thread.sleep(millisTillOnePastZero);
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
         }
-        LOG.info("Проснулся соберем ежедневную награду");
+        LOG.info(Utils.getMessage("rewardCollector.info.sleep.awake"));
     }
 
 }

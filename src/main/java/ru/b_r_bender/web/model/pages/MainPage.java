@@ -36,7 +36,7 @@ public class MainPage extends AbstractPage {
     @Override
     void initPage() {
         try {
-            Thread.sleep(20_000);
+            Thread.sleep(10_000);
             reloadPage();
             duelAvailable = checkElementAvailability(DUEL_LOCATOR);
             dungeonAvailable = checkElementAvailability(DUNGEON_LOCATOR);
@@ -59,7 +59,7 @@ public class MainPage extends AbstractPage {
         duelThread.start();
         Thread shopThread = new Thread(new Shopper(webDriver), "Shopper Thread");
         shopThread.start();
-        Thread deckManagerThread = new Thread(new DeckManager(webDriver), "Deck Manager Thread");
-        deckManagerThread.start();
+//        Thread deckManagerThread = new Thread(new DeckManager(webDriver), "Deck Manager Thread");
+//        deckManagerThread.start();
     }
 }

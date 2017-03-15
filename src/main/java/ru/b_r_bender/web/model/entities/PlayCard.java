@@ -7,11 +7,14 @@ import ru.b_r_bender.web.utils.SeleniumUtils;
 
 import java.util.List;
 
+import static ru.b_r_bender.web.controller.utils.CardsUtils.*;
+
 /**
  * @author BRBender created on 02.03.2017.
  */
 public class PlayCard implements Comparable<PlayCard> {
 
+    private static final By CARD_NAME_LOCATOR = By.cssSelector(".fttl.mt5");
     private static final By CARD_STRENGTH_LOCATOR = By.cssSelector(".pt10.small");
     private static final By CARD_LEVEL_LOCATOR = By.cssSelector(".pt5.small");
     private static final By CARD_ATTRIBUTES_LOCATOR = By.cssSelector(".pt5.small");
@@ -28,12 +31,14 @@ public class PlayCard implements Comparable<PlayCard> {
     private static final String LEVEL_PROGRESS_ATTRIBUTE_NAME = "style";
 
     private String cardUrl;
+    private String cardName;
     private int cardStrength;
     private int cardLevel;
     private boolean isInPlayDeck;
     private boolean isProtected;
     private double levelProgress;
     private int cardStrengthAt40;
+    private int lastUpgradeAttemptSuccessCount;
 
     private PlayCard() {
     }
@@ -43,6 +48,7 @@ public class PlayCard implements Comparable<PlayCard> {
         List<WebElement> webElements = SeleniumUtils.getWebElements(managerDriver, CARD_ATTRIBUTES_LOCATOR);
 
         this.cardUrl = managerDriver.getCurrentUrl();
+        this.cardName = SeleniumUtils.getWebElement(managerDriver, CARD_NAME_LOCATOR).getText();
         this.cardStrength = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_STRENGTH_LOCATOR);
         this.cardLevel = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_LEVEL_LOCATOR);
         this.isInPlayDeck = webElements.get(1).getText().equals(CARD_ATTRIBUTES_IN_PLAY_DECK);
@@ -79,15 +85,17 @@ public class PlayCard implements Comparable<PlayCard> {
         }
     }
 
-    public boolean upgrade(WebDriver managerDriver) {
+    public int upgrade(WebDriver managerDriver) {
+        lastUpgradeAttemptSuccessCount = 0;
+
         if (managerDriver.getCurrentUrl().equals(this.cardUrl)) {
-            return performUpgrade(managerDriver);
+            return performUpgrade(managerDriver) ? lastUpgradeAttemptSuccessCount : 0;
         } else {
             String urlToGoBackTo = managerDriver.getCurrentUrl();
             managerDriver.get(this.cardUrl);
             boolean result = performUpgrade(managerDriver);
             managerDriver.get(urlToGoBackTo);
-            return result;
+            return result ? lastUpgradeAttemptSuccessCount : 0;
         }
     }
 
@@ -96,17 +104,22 @@ public class PlayCard implements Comparable<PlayCard> {
         while (SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_SUCCESS_LOCATOR) == null
                 && SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_CONFIRM_LOCATOR) == null){
             SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_LOCATOR).click();
-            upgradeSuccess = true;
+            if (SeleniumUtils.getIntValueFromElement(managerDriver, CARD_LEVEL_LOCATOR) - this.cardLevel == 1) {
+                upgradeSuccess = true;
+                lastUpgradeAttemptSuccessCount++;
+            }
         }
         if ((cardLevel + 1) % 5 == 0 && sufficientFounds(managerDriver)) {
             SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_CONFIRM_LOCATOR).click();
-            upgradeSuccess = true;
+            if (SeleniumUtils.getIntValueFromElement(managerDriver, CARD_LEVEL_LOCATOR) - this.cardLevel == 1) {
+                upgradeSuccess = true;
+                lastUpgradeAttemptSuccessCount++;
+            }
         }
-        SeleniumUtils.refresh(managerDriver);
         this.cardLevel = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_LEVEL_LOCATOR);
         this.levelProgress = SeleniumUtils.getDoubleValueFromElementAttribute(managerDriver, LEVEL_PROGRESS_LOCATOR, LEVEL_PROGRESS_ATTRIBUTE_NAME);
         this.cardStrength = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_STRENGTH_LOCATOR);
-        if (SeleniumUtils.getWebElement(managerDriver, UPGRADE_CARD_SUCCESS_LOCATOR) != null && this.levelProgress == 100d) {
+        if (upgradeSuccess && this.levelProgress == 100d) {
             performUpgrade(managerDriver);
         }
         return upgradeSuccess;
@@ -127,7 +140,7 @@ public class PlayCard implements Comparable<PlayCard> {
             return card.cardStrength;
         }
 
-        card.cardStrength = card.cardLevel % 5 == 0 ? card.cardStrength - 160 : card.cardStrength - 40;
+        card.cardStrength = card.cardStrength - getStrengthAtSpecifiedLevel(card.cardLevel);
         card.cardLevel--;
         return downgradeTo40(card);
     }
@@ -164,10 +177,11 @@ public class PlayCard implements Comparable<PlayCard> {
     @Override
     public String toString() {
         return "PlayCard{" +
-                "cardStrength=" + cardStrength +
-                ", cardLevel=" + cardLevel +
+                "name=" + cardName +
+                ", strength=" + cardStrength +
+                ", level=" + cardLevel +
                 ", levelProgress=" + levelProgress +
-                ", cardStrengthAt40=" + cardStrengthAt40 +
+                ", strengthAt40=" + cardStrengthAt40 +
                 '}';
     }
 

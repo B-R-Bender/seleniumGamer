@@ -9,6 +9,7 @@ import ru.b_r_bender.web.controller.Shopper;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -38,6 +39,15 @@ public class Utils {
     /**
      * Method will calculate cool down time for specified <b>pageUri</b> till it will be active again.
      * by default method will return 1+ hours.
+     * @return cool down time in milliseconds
+     */
+    public static long calculateElementCoolDownTime(String pageUri) {
+        return calculateElementCoolDownTime(pageUri, null);
+    }
+
+    /**
+     * Method will calculate cool down time for specified <b>pageUri</b> till it will be active again.
+     * by default method will return 1+ hours. You can specified a web element to calculate cool down for.
      * @return cool down time in milliseconds
      */
     public static long calculateElementCoolDownTime(String pageUri, WebElement coolDownElement) {
@@ -117,6 +127,19 @@ public class Utils {
      */
     public static long getLongDelay() {
         return random.nextInt(270_000) + 155_000;
+    }
+
+    /**
+     * Converted specified time in milliseconds to string pattern "%02d ч : %02d мин : %02d сек"
+     * @param millis time in milliseconds
+     * @return time in formatted string
+     */
+    public static String millisecondsToTimeString(long millis) {
+        long hour = (millis / (1000 * 60 * 60)) % 24;
+        long minute = (millis / (1000 * 60)) % 60;
+        long second = (millis / 1000) % 60;
+
+        return String.format("%02d ч : %02d мин : %02d сек", hour, minute, second);
     }
 
     /**

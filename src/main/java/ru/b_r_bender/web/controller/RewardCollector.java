@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import ru.b_r_bender.web.model.entities.Reward;
 import ru.b_r_bender.web.model.pages.MainPage;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
@@ -60,6 +61,7 @@ public class RewardCollector implements Runnable {
     }
 
     private void collectDailyTasksRewards() {
+        collectorDriver.get(COLLECTOR_PAGE_URI);
         LOG.info(Utils.getMessage("rewardCollector.info.tasks.get"));
         int totalRewardsCollected = 0;
         List<WebElement> rewardElements = SeleniumUtils.getWebElements(collectorDriver, DAILY_TASKS_REWARDS_LOCATOR);
@@ -71,13 +73,10 @@ public class RewardCollector implements Runnable {
     }
 
     private void sleepTillTasksHarvestTime() {
-        Calendar fiveMinutesToTwelve = SeleniumUtils.getServerTime(collectorDriver);
-        fiveMinutesToTwelve.add(Calendar.DAY_OF_MONTH, 1);
-        fiveMinutesToTwelve.set(Calendar.HOUR_OF_DAY, 0);
+        Calendar fiveMinutesToTwelve = SeleniumUtils.getTomorrow(collectorDriver);
         fiveMinutesToTwelve.set(Calendar.MINUTE, -5);
-        fiveMinutesToTwelve.set(Calendar.SECOND, 0);
-        fiveMinutesToTwelve.set(Calendar.MILLISECOND, 0);
         Calendar now = SeleniumUtils.getServerTime(collectorDriver);
+
         long millisTillFiveToTwelve = fiveMinutesToTwelve.getTimeInMillis() - now.getTimeInMillis();
         LOG.info(Utils.getMessage("rewardCollector.info.sleep.tasks", millisTillFiveToTwelve));
         try {
@@ -89,13 +88,10 @@ public class RewardCollector implements Runnable {
     }
 
     private void sleepTillNextDay() {
-        Calendar onePastZero = SeleniumUtils.getServerTime(collectorDriver);
-        onePastZero.add(Calendar.DAY_OF_MONTH, 1);
-        onePastZero.set(Calendar.HOUR_OF_DAY, 0);
-        onePastZero.set(Calendar.MINUTE, 0);
+        Calendar onePastZero = SeleniumUtils.getTomorrow(collectorDriver);
         onePastZero.set(Calendar.SECOND, 30);
-        onePastZero.set(Calendar.MILLISECOND, 0);
         Calendar now = SeleniumUtils.getServerTime(collectorDriver);
+
         long millisTillOnePastZero = onePastZero.getTimeInMillis() - now.getTimeInMillis();
         LOG.info(Utils.getMessage("rewardCollector.info.sleep.daily", millisTillOnePastZero));
         try {

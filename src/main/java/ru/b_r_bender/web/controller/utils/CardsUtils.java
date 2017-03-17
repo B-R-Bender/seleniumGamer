@@ -32,8 +32,10 @@ public class CardsUtils {
                     resultStrength = 160;
                     break;
                 case 60:
-                case 65:
                     resultStrength = 250;
+                    break;
+                case 65:
+                    resultStrength = 300;
                     break;
                 case 70:
                     resultStrength = 350;

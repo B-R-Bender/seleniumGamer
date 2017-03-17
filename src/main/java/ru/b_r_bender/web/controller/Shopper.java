@@ -70,7 +70,7 @@ public class Shopper implements Runnable {
 
     private void rest() {
         try {
-            long coolDownTime = Utils.calculateElementCoolDownTime(MARKET_PAGE_URI, null);
+            long coolDownTime = Utils.calculateElementCoolDownTime(MARKET_PAGE_URI);
             LOG.info(Utils.getMessage("shopper.info.shop.notEnoughMoney", coolDownTime));
             Thread.sleep(coolDownTime);
             SeleniumUtils.refresh(shopperDriver);

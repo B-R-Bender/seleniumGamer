@@ -166,4 +166,16 @@ public class SeleniumUtils {
 
         return serverTime;
     }
+
+    public static Calendar getTomorrow(WebDriver webDriver) {
+        Calendar tomorrow = getServerTime(webDriver);
+
+        tomorrow.add(Calendar.DAY_OF_MONTH, 1);
+        tomorrow.set(Calendar.HOUR_OF_DAY, 0);
+        tomorrow.set(Calendar.MINUTE, 0);
+        tomorrow.set(Calendar.SECOND, 0);
+        tomorrow.set(Calendar.MILLISECOND, 0);
+
+        return tomorrow;
+    }
 }

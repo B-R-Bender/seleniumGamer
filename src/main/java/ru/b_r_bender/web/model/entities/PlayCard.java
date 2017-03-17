@@ -120,6 +120,7 @@ public class PlayCard implements Comparable<PlayCard> {
         this.levelProgress = SeleniumUtils.getDoubleValueFromElementAttribute(managerDriver, LEVEL_PROGRESS_LOCATOR, LEVEL_PROGRESS_ATTRIBUTE_NAME);
         this.cardStrength = SeleniumUtils.getIntValueFromElement(managerDriver, CARD_STRENGTH_LOCATOR);
         if (upgradeSuccess && this.levelProgress == 100d) {
+            SeleniumUtils.refresh(managerDriver);
             performUpgrade(managerDriver);
         }
         return upgradeSuccess;

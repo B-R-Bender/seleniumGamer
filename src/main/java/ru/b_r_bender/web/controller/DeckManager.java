@@ -5,10 +5,10 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.model.entities.PlayCard;
+import ru.b_r_bender.web.model.entities.Reward;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
 
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -29,52 +29,55 @@ public class DeckManager implements Runnable {
     private WebDriver managerDriver;
     private List<PlayCard> playDeck;
     private List<PlayCard> weakDeck;
-    private boolean weakCardsAvailable;
-    private int upgradedCardsCount;
+    private int upgradeCounts;
     private Calendar fiveCardsUpgradedTime;
 
     {
         playDeck = new ArrayList<>(9);
-        weakDeck = new ArrayList<>(50);
+        weakDeck = new ArrayList<>(15);
     }
 
     public DeckManager(WebDriver webDriver) {
         LOG.info(Utils.getMessage("deckManager.info.created"));
         managerDriver = SeleniumUtils.cloneDriverInstance(webDriver, PLAY_DECK_PAGE_URI);
-        updatePlayDeck();
-        isSomeWeakCardsAvailable();
+        playDeck = updateDeck(PLAY_DECK_PAGE_URI);
+        weakDeck = updateDeck(WEAK_DECK_PAGE_URI);
+        upgradeCounts = Reward.UPGRADE_5_PLAY_CARDS.getRewardProgress(webDriver);
     }
 
-    private void updatePlayDeck() {
-        LOG.info(Utils.getMessage("deckManager.info.deck.updatePlayDeck"));
-        if (!managerDriver.getCurrentUrl().equals(PLAY_DECK_PAGE_URI)) {
-            managerDriver.get(PLAY_DECK_PAGE_URI);
+    private List<PlayCard> updateDeck(String deckURI) {
+        List<PlayCard> result = new ArrayList<>();
+
+        String deckStartMessage = deckURI.equals(PLAY_DECK_PAGE_URI)
+                ? Utils.getMessage("deckManager.info.deck.updatePlayDeck")
+                : Utils.getMessage("deckManager.info.deck.checkWeakDeck");
+        LOG.info(deckStartMessage);
+
+        if (!managerDriver.getCurrentUrl().equals(deckURI)) {
+            managerDriver.get(deckURI);
         }
-        playDeck.clear();
-        for (int i = 0; i < 9; i++) {
+
+        List<WebElement> cardElements = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR);
+        for (int i = 0; i < cardElements.size(); i++) {
             WebElement cardElement = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR).get(i);
             cardElement.click();
-            playDeck.add(new PlayCard(managerDriver));
+            result.add(new PlayCard(managerDriver));
             managerDriver.navigate().back();
         }
-        Collections.sort(playDeck);
-        LOG.info(Utils.getMessage("deckManager.info.deck.heroPlayDeck", playDeck));
-    }
+        Collections.sort(result);
 
-    private void isSomeWeakCardsAvailable() {
-        LOG.info(Utils.getMessage("deckManager.info.deck.checkWeakDeck"));
-        managerDriver.get(WEAK_DECK_PAGE_URI);
-        List<WebElement> cardElement = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR);
-        weakCardsAvailable = cardElement.size() != 0;
-        managerDriver.navigate().back();
-        LOG.info(Utils.getMessage("deckManager.info.deck.weakCardsAvailable", weakCardsAvailable));
+        String deckEndMessage = deckURI.equals(PLAY_DECK_PAGE_URI)
+                ? Utils.getMessage("deckManager.info.deck.heroPlayDeck", result)
+                : Utils.getMessage("deckManager.info.deck.heroWeakDeck", result);
+        LOG.info(deckEndMessage);
+        return result;
     }
 
     @Override
     public void run() {
         LOG.info(Utils.getMessage("deckManager.info.thread.start"));
         while (true) {
-            if (weakCardsAvailable) {
+            if (upgradeCounts < 5) {
                 upgradeDeck();
             } else {
                 rest();
@@ -88,41 +91,54 @@ public class DeckManager implements Runnable {
             PlayCard card = playDeck.get(i);
             LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.currentCard", i + 1, card));
             managerDriver.get(card.getCardUrl());
-            if (card.getLevelProgress() == 100d) {
-                LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.cardLevelProgressIsFull"));
-                int upgradeResult = card.upgrade(managerDriver);
-                this.upgradedCardsCount += upgradeResult;
-                String logMessage = upgradeResult > 0
-                        ? "deckManager.info.deck.upgrade.success"
-                        : "deckManager.info.deck.upgrade.failure";
-                LOG.info(Utils.getMessage(logMessage, card));
-            }
+            upgradeCard(card);
             while (card.isAbsorptionAvailable(managerDriver)) {
                 LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.weakCardsAvailable"));
                 card.absorbWeakCards(managerDriver);
                 LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.cardAfterUpgrade", card));
-                if (card.getLevelProgress() == 100d) {
-                    LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.cardLevelProgressIsFull"));
-                    int upgradeResult = card.upgrade(managerDriver);
-                    this.upgradedCardsCount += upgradeResult;
-                    String logMessage = upgradeResult > 0
-                            ? "deckManager.info.deck.upgrade.success"
-                            : "deckManager.info.deck.upgrade.failure";
-                    LOG.info(Utils.getMessage(logMessage, card));
-                }
+                upgradeCard(card);
             }
         }
-        weakCardsAvailable = false;
+    }
+
+    private void upgradeCard(PlayCard card) {
+        if (card.getLevelProgress() == 100d) {
+            if (upgradeCounts >= 5) {
+                LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.upgradeLimitReached", upgradeCounts));
+                return;
+            }
+            LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.cardLevelProgressIsFull"));
+            int upgradeResult = card.upgrade(managerDriver);
+            this.upgradeCounts += upgradeResult;
+            String logMessage = upgradeResult > 0
+                    ? "deckManager.info.deck.upgrade.success"
+                    : "deckManager.info.deck.upgrade.failure";
+            LOG.info(Utils.getMessage(logMessage, card));
+        }
     }
 
     private void rest() {
         try {
-            long coolDownTime = Utils.calculateElementCoolDownTime(PLAY_DECK_PAGE_URI, null);
-            LOG.info(Utils.getMessage("deckManager.info.deck.manager.sleep", coolDownTime));
-            Thread.sleep(coolDownTime);
-            LOG.info(Utils.getMessage("deckManager.info.deck.manager.wake"));
-            updatePlayDeck();
-            isSomeWeakCardsAvailable();
+            if (upgradeCounts >= 5) {
+                Calendar tomorrow = SeleniumUtils.getTomorrow(managerDriver);
+                Calendar now = SeleniumUtils.getServerTime(managerDriver);
+                long coolDownTillTomorrow = tomorrow.getTimeInMillis() - now.getTimeInMillis() + Utils.getMediumDelay();
+                String timeString = Utils.millisecondsToTimeString(coolDownTillTomorrow);
+
+                LOG.info(Utils.getMessage("deckManager.info.deck.manager.sleepTillTomorrow", upgradeCounts, timeString));
+                Thread.sleep(coolDownTillTomorrow);
+                upgradeCounts = 0;
+                LOG.info(Utils.getMessage("deckManager.info.deck.manager.wake"));
+            } else {
+                long coolDownTime = Utils.calculateElementCoolDownTime(PLAY_DECK_PAGE_URI);
+                String timeString = Utils.millisecondsToTimeString(coolDownTime);
+
+                LOG.info(Utils.getMessage("deckManager.info.deck.manager.sleep", timeString));
+                Thread.sleep(coolDownTime);
+                LOG.info(Utils.getMessage("deckManager.info.deck.manager.wake"));
+            }
+            playDeck = updateDeck(PLAY_DECK_PAGE_URI);
+            weakDeck = updateDeck(WEAK_DECK_PAGE_URI);
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
         }

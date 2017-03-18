@@ -57,7 +57,7 @@ public class Duelist implements Runnable {
         WebElement coolDownElement = SeleniumUtils.getWebElement(duelistDriver, COOL_DOWN_MESSAGE_LOCATOR);
         long coolDownTime = Utils.calculateElementCoolDownTime(DUEL_PAGE_URI, coolDownElement);
         try {
-            LOG.info(Utils.getMessage("duelist.info.duel.rest", coolDownTime));
+            LOG.info(Utils.getMessage("duelist.info.duel.rest", Utils.millisecondsToTimeString(coolDownTime)));
             Thread.sleep(coolDownTime);
             LOG.info(Utils.getMessage("duelist.info.duel.rested"));
         } catch (InterruptedException e) {
@@ -67,15 +67,15 @@ public class Duelist implements Runnable {
         duelAvailable = !isCoolDownActive();
     }
 
-    public boolean isCoolDownActive() {
+    private boolean isCoolDownActive() {
         return SeleniumUtils.getWebElement(duelistDriver, COOL_DOWN_MESSAGE_LOCATOR) != null;
     }
 
-    public boolean isNexFreeDuelAvailable() {
+    private boolean isNexFreeDuelAvailable() {
         return SeleniumUtils.getWebElement(duelistDriver, BATTLE_END_GOT_MORE_BUTTON_LOCATOR) != null;
     }
 
-    public void killEmAll() {
+    private void killEmAll() {
         int opponentSkipCount = 0;
         int opponentsBoundary = Utils.skippedOpponentsBoundary();
         LOG.info(Utils.getMessage("duelist.info.attemptToFindOpponent", opponentsBoundary));

@@ -77,11 +77,8 @@ public class DeckManager implements Runnable {
     public void run() {
         LOG.info(Utils.getMessage("deckManager.info.thread.start"));
         while (true) {
-            if (upgradeCounts < 5) {
-                upgradeDeck();
-            } else {
-                rest();
-            }
+            upgradeDeck();
+            rest();
         }
     }
 
@@ -102,11 +99,12 @@ public class DeckManager implements Runnable {
     }
 
     private void upgradeCard(PlayCard card) {
+        if (upgradeCounts >= 5) {
+            LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.upgradeLimitReached", upgradeCounts));
+            return;
+        }
+
         if (card.getLevelProgress() == 100d) {
-            if (upgradeCounts >= 5) {
-                LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.upgradeLimitReached", upgradeCounts));
-                return;
-            }
             LOG.info(Utils.getMessage("deckManager.info.deck.upgrade.cardLevelProgressIsFull"));
             int upgradeResult = card.upgrade(managerDriver);
             this.upgradeCounts += upgradeResult;

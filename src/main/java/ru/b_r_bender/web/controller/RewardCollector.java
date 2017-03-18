@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import ru.b_r_bender.web.model.entities.Reward;
 import ru.b_r_bender.web.model.pages.MainPage;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
@@ -25,6 +24,8 @@ public class RewardCollector implements Runnable {
 
     private static final By MAIN_PAGE_DAILY_REWARD_LOCATOR = By.cssSelector("a[href*='/dailyreward/take/']");
     private static final By DAILY_TASKS_REWARDS_LOCATOR = By.cssSelector("a[href*='/daily/reward/']");
+    private static final By MARATHON_REWARD_LOCATOR = By.xpath("//a[@href='/notif/OapojAzy/']");
+    private static final By MARATHON_END_REWARD_LOCATOR = By.cssSelector(".end");
 
     private WebDriver collectorDriver;
 
@@ -37,10 +38,32 @@ public class RewardCollector implements Runnable {
     public void run() {
         LOG.info(Utils.getMessage("rewardCollector.info.thread.start"));
         while (true) {
+            collectWeeklyReward();
             collectDailyReward();
             sleepTillTasksHarvestTime();
             collectDailyTasksRewards();
             sleepTillNextDay();
+        }
+    }
+
+    private void collectWeeklyReward() {
+        int dayOfTheWeek = Calendar.getInstance(TimeZone.getTimeZone("Europe/Moscow")).get(Calendar.DAY_OF_WEEK);
+        if (dayOfTheWeek == Calendar.SATURDAY) {
+            LOG.info(Utils.getMessage("rewardCollector.info.weekly.saturday"));
+            WebElement marathonElement = SeleniumUtils.getWebElement(collectorDriver, MARATHON_REWARD_LOCATOR);
+            boolean weeklyRewardAvailable = marathonElement != null;
+            if (weeklyRewardAvailable) {
+                LOG.info(Utils.getMessage("rewardCollector.info.weekly.available"));
+                marathonElement.click();
+                if (SeleniumUtils.getWebElement(collectorDriver, MARATHON_END_REWARD_LOCATOR) == null) {
+                    SeleniumUtils.refresh(collectorDriver);
+                    collectWeeklyReward();
+                } else {
+                    LOG.info(Utils.getMessage("rewardCollector.info.weekly.got"));
+                }
+            } else {
+                LOG.info(Utils.getMessage("rewardCollector.info.weekly.notAvailable"));
+            }
         }
     }
 
@@ -78,7 +101,8 @@ public class RewardCollector implements Runnable {
         Calendar now = SeleniumUtils.getServerTime(collectorDriver);
 
         long millisTillFiveToTwelve = fiveMinutesToTwelve.getTimeInMillis() - now.getTimeInMillis();
-        LOG.info(Utils.getMessage("rewardCollector.info.sleep.tasks", millisTillFiveToTwelve));
+        String timeString = Utils.millisecondsToTimeString(millisTillFiveToTwelve);
+        LOG.info(Utils.getMessage("rewardCollector.info.sleep.tasks", timeString));
         try {
             Thread.sleep(millisTillFiveToTwelve);
         } catch (InterruptedException e) {
@@ -93,7 +117,8 @@ public class RewardCollector implements Runnable {
         Calendar now = SeleniumUtils.getServerTime(collectorDriver);
 
         long millisTillOnePastZero = onePastZero.getTimeInMillis() - now.getTimeInMillis();
-        LOG.info(Utils.getMessage("rewardCollector.info.sleep.daily", millisTillOnePastZero));
+        String timeString = Utils.millisecondsToTimeString(millisTillOnePastZero);
+        LOG.info(Utils.getMessage("rewardCollector.info.sleep.daily", timeString));
         try {
             Thread.sleep(millisTillOnePastZero);
         } catch (InterruptedException e) {

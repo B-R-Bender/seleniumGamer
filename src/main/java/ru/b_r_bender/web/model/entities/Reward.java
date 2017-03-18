@@ -24,6 +24,7 @@ public enum Reward {
 
     Reward(By rewardProgressLocator, int rewardTarget) {
         this.rewardProgressLocator = rewardProgressLocator;
+        this.rewardTarget = rewardTarget;
     }
 
     /**

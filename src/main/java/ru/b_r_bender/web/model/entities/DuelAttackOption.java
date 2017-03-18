@@ -51,7 +51,7 @@ public class DuelAttackOption implements Comparable<DuelAttackOption> {
      * hero strength * attack multiplier - opponent strength * (2 - attack multiplier)
      * @return this DuelAttackOption attack strength
      */
-    private int getAttackStrength() {
+    public int getAttackStrength() {
         int heroTotalDamage = Utils.calculateMultiplierResult(heroStrength, attackDamageMultiplier);
         int opponentTotalDamage = Utils.calculateMultiplierResult(opponentStrength, 2 - attackDamageMultiplier);
         return heroTotalDamage - opponentTotalDamage;

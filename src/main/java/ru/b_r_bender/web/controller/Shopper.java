@@ -71,7 +71,8 @@ public class Shopper implements Runnable {
     private void rest() {
         try {
             long coolDownTime = Utils.calculateElementCoolDownTime(MARKET_PAGE_URI);
-            LOG.info(Utils.getMessage("shopper.info.shop.notEnoughMoney", coolDownTime));
+            String timeString = Utils.millisecondsToTimeString(coolDownTime);
+            LOG.info(Utils.getMessage("shopper.info.shop.notEnoughMoney", timeString));
             Thread.sleep(coolDownTime);
             SeleniumUtils.refresh(shopperDriver);
             LOG.info(Utils.getMessage("shopper.info.shop.gotMoreMoney"));

@@ -94,6 +94,15 @@ public class Utils {
     }
 
     /**
+     * Return 10 seconds delay.
+     *
+     * @return random delay in milliseconds
+     */
+    public static long getTenSecondsDelay() {
+        return 10_000;
+    }
+
+    /**
      * Return random super short delay time to imitate human behavior. Delay range 200 - 1000 milliseconds.
      *
      * @return random delay in milliseconds

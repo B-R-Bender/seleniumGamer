@@ -16,7 +16,7 @@ import javax.security.auth.login.FailedLoginException;
 public class RewardsCollectorTest {
 
     @Test
-    public void deckManagerTest() {
+    public void rewardsCollectorTest() {
         WebDriver webDriver = SeleniumUtils.getNewDriverInstance();
 
         try {
@@ -27,7 +27,7 @@ public class RewardsCollectorTest {
             new RewardCollector(webDriver).run();
             System.out.println("test");
         } catch (FailedLoginException e) {
-            System.out.println(e.getMessage() + "\n" + e.getStackTrace());
+            System.out.println(e);
         }
 
         SeleniumUtils.driverDismiss(webDriver);

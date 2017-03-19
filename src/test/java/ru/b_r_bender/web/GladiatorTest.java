@@ -2,8 +2,7 @@ package ru.b_r_bender.web;
 
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
-import ru.b_r_bender.web.controller.Shopper;
-import ru.b_r_bender.web.controller.utils.Gladiator;
+import ru.b_r_bender.web.controller.Gladiator;
 import ru.b_r_bender.web.model.pages.EnterPage;
 import ru.b_r_bender.web.model.pages.LoginPage;
 import ru.b_r_bender.web.utils.SeleniumUtils;

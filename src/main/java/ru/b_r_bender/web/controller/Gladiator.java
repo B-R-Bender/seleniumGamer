@@ -1,4 +1,4 @@
-package ru.b_r_bender.web.controller.utils;
+package ru.b_r_bender.web.controller;
 
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
@@ -32,14 +32,17 @@ public class Gladiator implements Runnable {
     private static final By ARENA_LOSE_LOCATOR = By.cssSelector(".c_lose.medium");
 
     private WebDriver gladiatorDriver;
-    private boolean arenaIsOpen;
+    private int arenaWins;
+    private int arenaParticipate;
 
     public Gladiator(WebDriver gladiatorDriver) {
         this.gladiatorDriver = SeleniumUtils.cloneDriverInstance(gladiatorDriver, ARENA_PAGE_URI);
+        LOG.info(Utils.getMessage("gladiator.info.created"));
     }
 
     @Override
     public void run() {
+        LOG.info(Utils.getMessage("gladiator.info.thread.start"));
         while (true) {
             forTheEmperor();
             sharpenWeapons();
@@ -47,24 +50,32 @@ public class Gladiator implements Runnable {
     }
 
     private void forTheEmperor() {
-        int arenaWins = 0;
-        int arenaParticipate = 0;
+        LOG.info(Utils.getMessage("gladiator.info.forTheEmperor", Utils.getAppProperty("login")));
+        arenaWins = 0;
+        arenaParticipate = 0;
         WebElement arenaTasksElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_TASKS_LOCATOR);
-        while ((arenaWins < 5 || arenaParticipate++ < 10) && arenaTasksElement != null) {
+        while ((arenaWins < 5 || arenaParticipate < 10) && arenaTasksElement != null) {
+            LOG.info(Utils.getMessage("gladiator.info.starts", ++arenaParticipate));
             enterArena();
             if (fight()) {
                 arenaWins++;
             }
             SeleniumUtils.getWebElement(gladiatorDriver, ARENA_REFRESH_BUTTON_LOCATOR).click();
         }
+        LOG.info(Utils.getMessage("gladiator.info.result", arenaParticipate, arenaWins));
     }
 
     private void enterArena() {
         try {
             SeleniumUtils.getWebElement(gladiatorDriver, ARENA_CHECK_IN_BUTTON_LOCATOR).click();
-            Integer countdown = SeleniumUtils.getIntValueFromElement(gladiatorDriver, ARENA_BATTLE_COUNTDOWN_LOCATOR) * 1_000;
-            Thread.sleep(countdown != null ? countdown : 30_000);
-            SeleniumUtils.getWebElement(gladiatorDriver, ARENA_REFRESH_BUTTON_LOCATOR).click();
+            Integer countdown = SeleniumUtils.getIntValueFromElement(gladiatorDriver, ARENA_BATTLE_COUNTDOWN_LOCATOR);
+            Thread.sleep(countdown != null ? countdown * 1_000 : 30_000);
+            WebElement refreshElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_REFRESH_BUTTON_LOCATOR);
+            if (refreshElement != null) {
+                refreshElement.click();
+            } else {
+                SeleniumUtils.refresh(gladiatorDriver);
+            }
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
         }
@@ -73,6 +84,7 @@ public class Gladiator implements Runnable {
     private boolean fight() {
         WebElement winElement;
         WebElement loseElement;
+        LOG.info(Utils.getMessage("gladiator.info.fight.start"));
         while ((winElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_WIN_LOCATOR)) == null
                 && (loseElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_LOSE_LOCATOR))== null) {
             try {
@@ -86,7 +98,7 @@ public class Gladiator implements Runnable {
                 List<WebElement> damageMultipliers = SeleniumUtils.getWebElements(gladiatorDriver, DAMAGE_MULTIPLIER_BUTTON_LOCATOR);
                 List<WebElement> heroCards = SeleniumUtils.getWebElements(gladiatorDriver, HERO_CARDS_BUTTON_LOCATOR);
                 List<DuelAttackOption> attackOptions = new ArrayList<>(3);
-                for (int i = 0; i < 3; i++) {
+                for (int i = 0; i < heroCards.size(); i++) {
                     int opponentStrength = Integer.parseInt(opponentCards.get(i).getText());
                     double damageMultiplier = Utils.parseMultiplierValue(damageMultipliers.get(i).getText());
                     int heroStrength = Integer.parseInt(heroCards.get(i).getText());
@@ -94,13 +106,18 @@ public class Gladiator implements Runnable {
                             new DuelAttackOption(heroCards.get(i), opponentStrength, damageMultiplier, heroStrength);
                     attackOptions.add(attackOption);
                 }
-                attackOptions.sort(Comparator.comparingInt(DuelAttackOption::getAttackStrength));
+                attackOptions.sort(arenaWins < 5
+                        ? Comparator.comparingInt(DuelAttackOption::getAttackStrength)
+                        : Comparator.comparingInt(DuelAttackOption::getAttackStrength).reversed());
                 DuelAttackOption bestDuelAttackOption = attackOptions.get(2);
                 bestDuelAttackOption.attack();
             } catch (InterruptedException e) {
                 LOG.error(e.getMessage(), e);
             }
         }
+        LOG.info(winElement != null
+                ? Utils.getMessage("gladiator.info.fight.end.win")
+                : Utils.getMessage("gladiator.info.fight.end.lose"));
         return winElement != null;
     }
 
@@ -112,8 +129,9 @@ public class Gladiator implements Runnable {
 
             long millisTillTomorrowArena = tomorrow.getTimeInMillis() - now.getTimeInMillis();
             String timeString = Utils.millisecondsToTimeString(millisTillTomorrowArena);
-            LOG.info("sharping weapon" + timeString);
+            LOG.info(Utils.getMessage("gladiator.info.rest", timeString));
             Thread.sleep(millisTillTomorrowArena);
+            SeleniumUtils.refresh(gladiatorDriver);
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
         }

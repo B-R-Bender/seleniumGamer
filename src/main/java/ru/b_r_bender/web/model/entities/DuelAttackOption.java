@@ -95,4 +95,17 @@ public class DuelAttackOption implements Comparable<DuelAttackOption> {
         result = 31 * result + heroStrength;
         return result;
     }
+
+    //getters and setters
+    public int getOpponentStrength() {
+        return opponentStrength;
+    }
+
+    public double getAttackDamageMultiplier() {
+        return attackDamageMultiplier;
+    }
+
+    public int getHeroStrength() {
+        return heroStrength;
+    }
 }

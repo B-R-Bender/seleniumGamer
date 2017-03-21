@@ -20,10 +20,12 @@ public class Gladiator implements Runnable {
     public static final String ARENA_PAGE_URI = "http://elem.mobi/arena/";
 
     private static final By ARENA_CHECK_IN_BUTTON_LOCATOR = By.xpath("//a[@href='/arena/join/']");
-    private static final By ARENA_REFRESH_BUTTON_LOCATOR = By.xpath("//a[@href='/arena/']");
+    private static final By ARENA_CHECK_IN_REFRESH_BUTTON_LOCATOR = By.xpath("//a[@href='/arena/']");
     private static final By ARENA_TASKS_LOCATOR = By.xpath("//div[@class='c_99 cntr small']");
     private static final By ARENA_BATTLE_COUNTDOWN_LOCATOR = By.xpath("//div[@class='c_fe']");
 
+    private static final By CARDS_REFRESH_COOL_DOWN_LOCATOR = By.cssSelector(".count");
+    private static final By CARDS_REFRESH_LOCATOR = By.cssSelector("a[href*='/arena/'][class*='btn blue w100px']");
     private static final By HERO_CARDS_BUTTON_LOCATOR = By.cssSelector("a[href*='/arena/'][class='card']");
     private static final By OPPONENT_CARDS_BUTTON_LOCATOR = By.cssSelector("a[href*='/arena/'][class='card chide66']");
     private static final By DAMAGE_MULTIPLIER_BUTTON_LOCATOR = By.cssSelector(".small.mb5");
@@ -61,7 +63,7 @@ public class Gladiator implements Runnable {
             if (fight()) {
                 arenaWins++;
             }
-            SeleniumUtils.getWebElement(gladiatorDriver, ARENA_REFRESH_BUTTON_LOCATOR).click();
+            SeleniumUtils.getWebElement(gladiatorDriver, ARENA_CHECK_IN_REFRESH_BUTTON_LOCATOR).click();
         }
         LOG.info(Utils.getMessage("gladiator.info.result", arenaParticipate, arenaWins));
     }
@@ -71,7 +73,7 @@ public class Gladiator implements Runnable {
             SeleniumUtils.getWebElement(gladiatorDriver, ARENA_CHECK_IN_BUTTON_LOCATOR).click();
             Integer countdown = SeleniumUtils.getIntValueFromElement(gladiatorDriver, ARENA_BATTLE_COUNTDOWN_LOCATOR);
             Thread.sleep(countdown != null ? countdown * 1_000 : 30_000);
-            WebElement refreshElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_REFRESH_BUTTON_LOCATOR);
+            WebElement refreshElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_CHECK_IN_REFRESH_BUTTON_LOCATOR);
             if (refreshElement != null) {
                 refreshElement.click();
             } else {
@@ -89,8 +91,15 @@ public class Gladiator implements Runnable {
         while ((winElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_WIN_LOCATOR)) == null
                 && (loseElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_LOSE_LOCATOR))== null) {
             try {
-                Thread.sleep(Utils.getTenSecondsDelay());
-                SeleniumUtils.refresh(gladiatorDriver);
+                Integer coolDownTimeInSeconds =
+                        SeleniumUtils.getIntValueFromElement(gladiatorDriver, CARDS_REFRESH_COOL_DOWN_LOCATOR);
+                Thread.sleep(coolDownTimeInSeconds != null ? coolDownTimeInSeconds * 1_000 : 10_000);
+                WebElement refreshCardsElement = SeleniumUtils.getWebElement(gladiatorDriver, CARDS_REFRESH_LOCATOR);
+                if (refreshCardsElement != null) {
+                    refreshCardsElement.click();
+                } else {
+                    SeleniumUtils.refresh(gladiatorDriver);
+                }
                 if ((winElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_WIN_LOCATOR)) != null
                         || SeleniumUtils.getWebElement(gladiatorDriver, ARENA_LOSE_LOCATOR) != null) {
                     break;

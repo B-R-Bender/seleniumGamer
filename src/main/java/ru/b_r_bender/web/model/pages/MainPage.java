@@ -3,10 +3,7 @@ package ru.b_r_bender.web.model.pages;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import ru.b_r_bender.web.controller.DeckManager;
-import ru.b_r_bender.web.controller.Duelist;
-import ru.b_r_bender.web.controller.RewardCollector;
-import ru.b_r_bender.web.controller.Shopper;
+import ru.b_r_bender.web.controller.*;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 
 /**
@@ -61,5 +58,7 @@ public class MainPage extends AbstractPage {
         shopThread.start();
         Thread deckManagerThread = new Thread(new DeckManager(webDriver), "Deck Manager Thread");
         deckManagerThread.start();
+        Thread gladiatorThread = new Thread(new Gladiator(webDriver), "Gladiator Thread");
+        gladiatorThread.start();
     }
 }

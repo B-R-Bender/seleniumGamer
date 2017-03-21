@@ -103,6 +103,14 @@ public class SeleniumUtils {
 
     public static Integer getIntValueFromElementByIndex(WebDriver webDriver, By elementLocator, int valuedIndex) {
         WebElement webElement = getWebElement(webDriver, elementLocator);
+        return getIntValueFromElement(webElement, valuedIndex);
+    }
+
+    public static Integer getIntValueFromElement(WebElement webElement) {
+        return getIntValueFromElement(webElement, 0);
+    }
+
+    public static Integer getIntValueFromElement(WebElement webElement, int valuedIndex) {
         Integer result = null;
         if (webElement != null) {
             String valueString = webElement.getText().split("\n")[valuedIndex];

@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.controller.DeckManager;
 import ru.b_r_bender.web.controller.Duelist;
+import ru.b_r_bender.web.controller.DungeonKeeper;
 import ru.b_r_bender.web.controller.Shopper;
 
 import java.io.FileInputStream;
@@ -51,39 +52,15 @@ public class Utils {
      * @return cool down time in milliseconds
      */
     public static long calculateElementCoolDownTime(String pageUri, WebElement coolDownElement) {
-        int hourIndex = 0;
-        int minuteIndex = 0;
-        int secondsIndex =0;
-
-        int hourCoolDownValue = 0;
-        int minuteCoolDownValue = 0;
-        int secondsCoolDownValue = 0;
-
         switch (pageUri) {
+            case DungeonKeeper.DUNGEON_PAGE_URI:
+                return parseCoolDownString(coolDownElement.getText());
             case Duelist.DUEL_PAGE_URI:
                 String text = coolDownElement.getText();
                 String coolDownText = text.split("\n")[1];
                 String coolDownValue = coolDownText.substring(coolDownText.indexOf("через") + 5).trim();
 
-                hourIndex = coolDownValue.indexOf("ч");
-                minuteIndex = coolDownValue.indexOf("м");
-                secondsIndex = coolDownValue.indexOf("с");
-
-                if (hourIndex == -1) {
-                    if (minuteIndex == -1) {
-                        secondsCoolDownValue = Integer.parseInt(coolDownValue.substring(minuteIndex+1,secondsIndex).trim());
-                    } else {
-                        minuteCoolDownValue = Integer.parseInt(coolDownValue.substring(hourIndex + 1, minuteIndex).trim());
-                        secondsCoolDownValue = Integer.parseInt(coolDownValue.substring(minuteIndex + 1, secondsIndex).trim());
-                    }
-                } else {
-                    hourCoolDownValue = Integer.parseInt(coolDownValue.substring(0,hourIndex).trim());
-                    minuteCoolDownValue = Integer.parseInt(coolDownValue.substring(hourIndex+1,minuteIndex).trim());
-                }
-                return hourCoolDownValue * 3_600_000
-                        + minuteCoolDownValue * 60_000
-                        + secondsCoolDownValue * 1_000
-                        + getMediumDelay();
+                return parseCoolDownString(coolDownValue);
             case Shopper.MARKET_PAGE_URI:
                 return 36_000_000 + getLongDelay();
             case DeckManager.PLAY_DECK_PAGE_URI:
@@ -91,6 +68,40 @@ public class Utils {
             default:
                 return 3_600_000 + getLongDelay();
         }
+    }
+
+    private static long parseCoolDownString(String coolDownValue) {
+        int hourIndex;
+        int minuteIndex;
+        int secondsIndex;
+
+        int hourCoolDownValue = 0;
+        int minuteCoolDownValue = 0;
+        int secondsCoolDownValue = 0;
+
+        hourIndex = coolDownValue.indexOf("ч");
+        minuteIndex = coolDownValue.indexOf("м");
+        secondsIndex = coolDownValue.indexOf("с");
+
+        if (hourIndex == -1) {
+            if (minuteIndex == -1) {
+                secondsCoolDownValue = Integer.parseInt(coolDownValue.substring(minuteIndex+1,secondsIndex).trim());
+            } else {
+                minuteCoolDownValue = Integer.parseInt(coolDownValue.substring(hourIndex + 1, minuteIndex).trim());
+                if (secondsIndex != -1) {
+                    secondsCoolDownValue = Integer.parseInt(coolDownValue.substring(minuteIndex + 1, secondsIndex).trim());
+                }
+            }
+        } else {
+            hourCoolDownValue = Integer.parseInt(coolDownValue.substring(0,hourIndex).trim());
+            if (minuteIndex != -1) {
+                minuteCoolDownValue = Integer.parseInt(coolDownValue.substring(hourIndex + 1, minuteIndex).trim());
+            }
+        }
+        return hourCoolDownValue * 3_600_000
+                + minuteCoolDownValue * 60_000
+                + secondsCoolDownValue * 1_000
+                + getMediumDelay();
     }
 
     /**

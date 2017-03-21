@@ -8,7 +8,6 @@ import ru.b_r_bender.web.model.pages.LoginPage;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 
 import javax.security.auth.login.FailedLoginException;
-import java.util.Arrays;
 
 /**
  * @author Homenko created on 15.03.2017.

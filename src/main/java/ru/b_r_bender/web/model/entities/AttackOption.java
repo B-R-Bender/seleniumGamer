@@ -9,7 +9,7 @@ import ru.b_r_bender.web.utils.Utils;
  * It allows to compare one attack option to another to determine best outcome.
  * @author BRBender created on 01.03.2017.
  */
-public class DuelAttackOption implements Comparable<DuelAttackOption> {
+public class AttackOption implements Comparable<AttackOption> {
 
     private WebElement actionElement;
     private int opponentStrength;
@@ -17,12 +17,12 @@ public class DuelAttackOption implements Comparable<DuelAttackOption> {
     private int heroStrength;
 
     /**
-     * Default constructor to get a {@link DuelAttackOption}
+     * Default constructor to get a {@link AttackOption}
      * @param opponentStrength strength of opponent attack
      * @param attackDamageMultiplier attack multiplier
      * @param heroStrength strength of hero attack
      */
-    public DuelAttackOption(WebElement actionElement, int opponentStrength, double attackDamageMultiplier, int heroStrength) {
+    public AttackOption(WebElement actionElement, int opponentStrength, double attackDamageMultiplier, int heroStrength) {
         this.actionElement = actionElement;
         this.opponentStrength = opponentStrength;
         this.attackDamageMultiplier = attackDamageMultiplier;
@@ -30,26 +30,26 @@ public class DuelAttackOption implements Comparable<DuelAttackOption> {
     }
 
     /**
-     * Default constructor to get a {@link DuelAttackOption} if attackDamageMultiplier unknown.<br>
+     * Default constructor to get a {@link AttackOption} if attackDamageMultiplier unknown.<br>
      * By default attackDamageMultiplier = 1d;
      * @param opponentStrength strength of opponent attack
      * @param heroStrength strength of hero attack
      */
-    public DuelAttackOption(WebElement actionElement, int opponentStrength, int heroStrength) {
+    public AttackOption(WebElement actionElement, int opponentStrength, int heroStrength) {
         this(actionElement, opponentStrength, 1d, heroStrength);
     }
 
     /**
-     * Perform attack with <b>this</b> DuelAttackOption
+     * Perform attack with <b>this</b> AttackOption
      */
     public void attack() {
         actionElement.click();
     }
 
     /**
-     * Calculates this DuelAttackOption attack strength using next formula:<br>
+     * Calculates this AttackOption attack strength using next formula:<br>
      * hero strength * attack multiplier - opponent strength * (2 - attack multiplier)
-     * @return this DuelAttackOption attack strength
+     * @return this AttackOption attack strength
      */
     public int getAttackStrength() {
         int heroTotalDamage = Utils.calculateMultiplierResult(heroStrength, attackDamageMultiplier);
@@ -59,7 +59,7 @@ public class DuelAttackOption implements Comparable<DuelAttackOption> {
 
     @Override
     public String toString() {
-        return "DuelAttackOption{" +
+        return "AttackOption{" +
                 "opp=" + opponentStrength +
                 ", multiplier=" + attackDamageMultiplier +
                 ", hero=" + heroStrength +
@@ -68,9 +68,9 @@ public class DuelAttackOption implements Comparable<DuelAttackOption> {
     }
 
     @Override
-    public int compareTo(DuelAttackOption that) {
+    public int compareTo(AttackOption that) {
         if (that == null) {
-            throw new IllegalArgumentException("DuelAttackOption can not be compared to null");
+            throw new IllegalArgumentException("AttackOption can not be compared to null");
         }
         return this.getAttackStrength() - that.getAttackStrength();
     }
@@ -80,7 +80,7 @@ public class DuelAttackOption implements Comparable<DuelAttackOption> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        DuelAttackOption that = (DuelAttackOption) o;
+        AttackOption that = (AttackOption) o;
 
         return this.getAttackStrength() == that.getAttackStrength();
     }

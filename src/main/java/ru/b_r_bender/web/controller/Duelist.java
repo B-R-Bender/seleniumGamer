@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import ru.b_r_bender.web.model.entities.DuelAttackOption;
+import ru.b_r_bender.web.model.entities.AttackOption;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
 
@@ -137,25 +137,25 @@ public class Duelist implements Runnable {
             List<WebElement> opponentCards = SeleniumUtils.getWebElements(duelistDriver, OPPONENT_CARDS_BUTTON_LOCATOR);
             List<WebElement> damageMultipliers = SeleniumUtils.getWebElements(duelistDriver, DAMAGE_MULTIPLIER_BUTTON_LOCATOR);
             List<WebElement> heroCards = SeleniumUtils.getWebElements(duelistDriver, HERO_CARDS_BUTTON_LOCATOR);
-            List<DuelAttackOption> attackOptions = new ArrayList<>(3);
+            List<AttackOption> attackOptions = new ArrayList<>(3);
             for (int i = 0; i < 3; i++) {
                 int opponentStrength = Integer.parseInt(opponentCards.get(i).getText());
                 double damageMultiplier = Utils.parseMultiplierValue(damageMultipliers.get(i).getText());
                 int heroStrength = Integer.parseInt(heroCards.get(i).getText());
-                DuelAttackOption attackOption =
-                        new DuelAttackOption(heroCards.get(i), opponentStrength, damageMultiplier, heroStrength);
+                AttackOption attackOption =
+                        new AttackOption(heroCards.get(i), opponentStrength, damageMultiplier, heroStrength);
                 attackOptions.add(attackOption);
                 LOG.info(Utils.getMessage("duelist.info.duel.step.attackOption", i + 1, attackOption));
             }
             Collections.sort(attackOptions);
-            DuelAttackOption bestDuelAttackOption = attackOptions.get(2);
-            LOG.info(Utils.getMessage("duelist.info.duel.step.attack", bestDuelAttackOption));
+            AttackOption bestAttackOption = attackOptions.get(2);
+            LOG.info(Utils.getMessage("duelist.info.duel.step.attack", bestAttackOption));
             try {
                 Thread.sleep(Utils.getSuperShortDelay());
             } catch (InterruptedException e) {
                 LOG.error(e.getMessage(), e);
             }
-            bestDuelAttackOption.attack();
+            bestAttackOption.attack();
         }
     }
 

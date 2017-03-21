@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import ru.b_r_bender.web.model.entities.DuelAttackOption;
+import ru.b_r_bender.web.model.entities.AttackOption;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
 
@@ -53,8 +53,9 @@ public class Gladiator implements Runnable {
         LOG.info(Utils.getMessage("gladiator.info.forTheEmperor", Utils.getAppProperty("login")));
         arenaWins = 0;
         arenaParticipate = 0;
-        WebElement arenaTasksElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_TASKS_LOCATOR);
-        while ((arenaWins < 5 || arenaParticipate < 10) && arenaTasksElement != null) {
+        WebElement arenaTasksElement;
+        while ((arenaWins < 5 || arenaParticipate < 10)
+                && (arenaTasksElement  = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_TASKS_LOCATOR))!= null) {
             LOG.info(Utils.getMessage("gladiator.info.starts", ++arenaParticipate));
             enterArena();
             if (fight()) {
@@ -97,20 +98,23 @@ public class Gladiator implements Runnable {
                 List<WebElement> opponentCards = SeleniumUtils.getWebElements(gladiatorDriver, OPPONENT_CARDS_BUTTON_LOCATOR);
                 List<WebElement> damageMultipliers = SeleniumUtils.getWebElements(gladiatorDriver, DAMAGE_MULTIPLIER_BUTTON_LOCATOR);
                 List<WebElement> heroCards = SeleniumUtils.getWebElements(gladiatorDriver, HERO_CARDS_BUTTON_LOCATOR);
-                List<DuelAttackOption> attackOptions = new ArrayList<>(3);
+                List<AttackOption> attackOptions = new ArrayList<>(3);
                 for (int i = 0; i < heroCards.size(); i++) {
                     int opponentStrength = Integer.parseInt(opponentCards.get(i).getText());
                     double damageMultiplier = Utils.parseMultiplierValue(damageMultipliers.get(i).getText());
                     int heroStrength = Integer.parseInt(heroCards.get(i).getText());
-                    DuelAttackOption attackOption =
-                            new DuelAttackOption(heroCards.get(i), opponentStrength, damageMultiplier, heroStrength);
+                    AttackOption attackOption =
+                            new AttackOption(heroCards.get(i), opponentStrength, damageMultiplier, heroStrength);
                     attackOptions.add(attackOption);
                 }
+                if (attackOptions.size() == 0) {
+                    continue;
+                }
                 attackOptions.sort(arenaWins < 5
-                        ? Comparator.comparingInt(DuelAttackOption::getAttackStrength)
-                        : Comparator.comparingInt(DuelAttackOption::getAttackStrength).reversed());
-                DuelAttackOption bestDuelAttackOption = attackOptions.get(2);
-                bestDuelAttackOption.attack();
+                        ? Comparator.comparingInt(AttackOption::getAttackStrength)
+                        : Comparator.comparingInt(AttackOption::getAttackStrength).reversed());
+                AttackOption bestAttackOption = attackOptions.get(attackOptions.size() - 1);
+                bestAttackOption.attack();
             } catch (InterruptedException e) {
                 LOG.error(e.getMessage(), e);
             }

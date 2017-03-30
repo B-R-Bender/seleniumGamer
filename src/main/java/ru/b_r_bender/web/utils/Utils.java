@@ -2,10 +2,7 @@ package ru.b_r_bender.web.utils;
 
 import org.apache.log4j.Logger;
 import org.openqa.selenium.WebElement;
-import ru.b_r_bender.web.controller.DeckManager;
-import ru.b_r_bender.web.controller.Duelist;
-import ru.b_r_bender.web.controller.DungeonKeeper;
-import ru.b_r_bender.web.controller.Shopper;
+import ru.b_r_bender.web.controller.*;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -53,6 +50,8 @@ public class Utils {
      */
     public static long calculateElementCoolDownTime(String pageUri, WebElement coolDownElement) {
         switch (pageUri) {
+            case RefusingGuy.REFUSING_GUY_PAGE_URI:
+                return 3_600_000 + getLongDelay();
             case DungeonKeeper.DUNGEON_PAGE_URI:
                 return parseCoolDownString(coolDownElement.getText());
             case Duelist.DUEL_PAGE_URI:

@@ -3,9 +3,11 @@ package ru.b_r_bender.web.controller;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.model.entities.PlayCard;
 import ru.b_r_bender.web.model.entities.Reward;
+import ru.b_r_bender.web.model.pages.MainPage;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
 
@@ -53,17 +55,23 @@ public class DeckManager implements Runnable {
                 : Utils.getMessage("deckManager.info.deck.checkWeakDeck");
         LOG.info(deckStartMessage);
 
-        if (!managerDriver.getCurrentUrl().equals(deckURI)) {
-            managerDriver.get(deckURI);
+        try {
+            if (!managerDriver.getCurrentUrl().equals(deckURI)) {
+                managerDriver.get(deckURI);
+            }
+
+            List<WebElement> cardElements = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR);
+            for (int i = 0; i < cardElements.size(); i++) {
+                WebElement cardElement = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR).get(i);
+                cardElement.click();
+                Thread.sleep(Utils.getShortDelay() * 2);
+                result.add(new PlayCard(managerDriver));
+                managerDriver.get(deckURI);
+            }
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage(), e);
         }
 
-        List<WebElement> cardElements = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR);
-        for (int i = 0; i < cardElements.size(); i++) {
-            WebElement cardElement = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR).get(i);
-            cardElement.click();
-            result.add(new PlayCard(managerDriver));
-            managerDriver.navigate().back();
-        }
         Collections.sort(result);
 
         String deckEndMessage = deckURI.equals(PLAY_DECK_PAGE_URI)
@@ -75,10 +83,21 @@ public class DeckManager implements Runnable {
 
     @Override
     public void run() {
-        LOG.info(Utils.getMessage("deckManager.info.thread.start"));
-        while (true) {
-            upgradeDeck();
-            rest();
+        try {
+            LOG.info(Utils.getMessage("deckManager.info.thread.start"));
+            while (true) {
+                upgradeDeck();
+                rest();
+            }
+        } catch (WebDriverException e) {
+            LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
+            managerDriver.close();
+            MainPage.resurrectMe(DeckManager.class);
+        } catch (Exception e) {
+            String screenName = SeleniumUtils.takeErrorScreenShot(managerDriver);
+            LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
+        } finally {
+            managerDriver.close();
         }
     }
 

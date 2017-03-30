@@ -138,17 +138,26 @@ public class SeleniumUtils {
         return result;
     }
 
-    public static synchronized void takeScreenShot(WebDriver webDriver) {
-        String filePath;
-        if (OS_NAME.contains("win")) {
-            filePath = "D:\\tmp\\seleniumGamerScr\\screenshot" + screenShotCounter++ + ".png";
-        } else {
-            filePath = "/home/bender/Изображения/Screenshots/seleniumGamerScr/screen" + screenShotCounter++ + ".png";
-        }
-        takeNamedScreenShot(webDriver, filePath);
+    public static synchronized String takeScreenShot(WebDriver webDriver) {
+        return takeNamedScreenShot(webDriver, "screen");
     }
 
-    public static synchronized void takeNamedScreenShot(WebDriver webDriver, String filePath) {
+    public static synchronized String takeErrorScreenShot(WebDriver webDriver) {
+        return takeNamedScreenShot(webDriver, "error");
+    }
+
+    public static synchronized String takeNamedScreenShot(WebDriver webDriver, String fileName) {
+        String filePath;
+        if (OS_NAME.contains("win")) {
+            filePath = "D:\\tmp\\seleniumGamerScr\\" + fileName + screenShotCounter++ + ".png";
+        } else {
+            filePath = "/home/bender/Изображения/Screenshots/seleniumGamerScr/" + fileName + screenShotCounter++ + ".png";
+        }
+        takeScreenShotWithPath(webDriver, filePath);
+        return filePath;
+    }
+
+    public static synchronized void takeScreenShotWithPath(WebDriver webDriver, String filePath) {
         try {
             File srcFile = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
             FileUtils.copyFile(srcFile, new File(filePath));
@@ -162,9 +171,9 @@ public class SeleniumUtils {
         String serverTimeString = SeleniumUtils.getWebElement(webDriver, SERVER_TIME_LOCATOR).getText();
         String[] timeFragments = serverTimeString.split(":");
 
-        int hours = Integer.parseInt(timeFragments[0]);
-        int minutes = Integer.parseInt(timeFragments[1]);
-        int seconds = Integer.parseInt(timeFragments[2]);
+        int hours = timeFragments[0].equals("") ? 0 : Integer.parseInt(timeFragments[0]);
+        int minutes = timeFragments[1].equals("") ? 0 : Integer.parseInt(timeFragments[1]);
+        int seconds = timeFragments[2].equals("") ? 0 : Integer.parseInt(timeFragments[2]);
 
         Calendar serverTime = Calendar.getInstance();
         serverTime.setTimeZone(TimeZone.getTimeZone("Europe/Moscow"));

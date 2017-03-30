@@ -3,8 +3,10 @@ package ru.b_r_bender.web.controller;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.model.entities.AttackOption;
+import ru.b_r_bender.web.model.pages.MainPage;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
 
@@ -30,7 +32,7 @@ public class Gladiator implements Runnable {
     private static final By OPPONENT_CARDS_BUTTON_LOCATOR = By.cssSelector("a[href*='/arena/'][class='card chide66']");
     private static final By DAMAGE_MULTIPLIER_BUTTON_LOCATOR = By.cssSelector(".small.mb5");
 
-    private static final By ARENA_WIN_LOCATOR = By.cssSelector(".c_win.medium");
+    private static final By ARENA_WIN_LOCATOR = By.xpath("//*[text()[contains(.,'Ваша команда победила')]]");
     private static final By ARENA_LOSE_LOCATOR = By.cssSelector(".c_lose.medium");
 
     private WebDriver gladiatorDriver;
@@ -44,10 +46,21 @@ public class Gladiator implements Runnable {
 
     @Override
     public void run() {
-        LOG.info(Utils.getMessage("gladiator.info.thread.start"));
-        while (true) {
-            forTheEmperor();
-            sharpenWeapons();
+        try {
+            LOG.info(Utils.getMessage("gladiator.info.thread.start"));
+            while (true) {
+                forTheEmperor();
+                sharpenWeapons();
+            }
+        } catch (WebDriverException e) {
+            LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
+            gladiatorDriver.close();
+            MainPage.resurrectMe(Gladiator.class);
+        } catch (Exception e) {
+            String screenName = SeleniumUtils.takeErrorScreenShot(gladiatorDriver);
+            LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
+        } finally {
+            gladiatorDriver.close();
         }
     }
 
@@ -72,7 +85,7 @@ public class Gladiator implements Runnable {
         try {
             SeleniumUtils.getWebElement(gladiatorDriver, ARENA_CHECK_IN_BUTTON_LOCATOR).click();
             Integer countdown = SeleniumUtils.getIntValueFromElement(gladiatorDriver, ARENA_BATTLE_COUNTDOWN_LOCATOR);
-            Thread.sleep(countdown != null ? countdown * 1_000 : 30_000);
+            Thread.sleep((countdown != null ? countdown * 1_000 : 30_000) + 1_000);
             WebElement refreshElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_CHECK_IN_REFRESH_BUTTON_LOCATOR);
             if (refreshElement != null) {
                 refreshElement.click();

@@ -3,7 +3,9 @@ package ru.b_r_bender.web.controller;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import ru.b_r_bender.web.controller.utils.ShopperStrategy;
+import ru.b_r_bender.web.model.pages.MainPage;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
 
@@ -44,11 +46,22 @@ public class Shopper implements Runnable {
 
     @Override
     public void run() {
-        LOG.info(Utils.getMessage("shopper.info.thread.start"));
-        while (true) {
-            letsGoShopping(howMuchCardsCanIBuy(heroSilver, RARE_CARD_VALUE));
-            rest();
-            updateTreasury();
+        try {
+            LOG.info(Utils.getMessage("shopper.info.thread.start"));
+            while (true) {
+                letsGoShopping(howMuchCardsCanIBuy(heroSilver, RARE_CARD_VALUE));
+                rest();
+                updateTreasury();
+            }
+        } catch (WebDriverException e) {
+            LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
+            shopperDriver.close();
+            MainPage.resurrectMe(Shopper.class);
+        } catch (Exception e) {
+            String screenName = SeleniumUtils.takeErrorScreenShot(shopperDriver);
+            LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
+        } finally {
+            shopperDriver.close();
         }
     }
 

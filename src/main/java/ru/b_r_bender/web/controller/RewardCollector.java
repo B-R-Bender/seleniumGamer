@@ -3,6 +3,7 @@ package ru.b_r_bender.web.controller;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.model.pages.MainPage;
 import ru.b_r_bender.web.utils.SeleniumUtils;
@@ -36,13 +37,24 @@ public class RewardCollector implements Runnable {
 
     @Override
     public void run() {
-        LOG.info(Utils.getMessage("rewardCollector.info.thread.start"));
-        while (true) {
-            collectWeeklyReward();
-            collectDailyReward();
-            sleepTillTasksHarvestTime();
-            collectDailyTasksRewards();
-            sleepTillNextDay();
+        try {
+            LOG.info(Utils.getMessage("rewardCollector.info.thread.start"));
+            while (true) {
+                collectDailyReward();
+                sleepTillTasksHarvestTime();
+                collectDailyTasksRewards();
+                collectWeeklyReward();
+                sleepTillNextDay();
+            }
+        } catch (WebDriverException e) {
+            LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
+            collectorDriver.close();
+            MainPage.resurrectMe(RewardCollector.class);
+        } catch (Exception e) {
+            String screenName = SeleniumUtils.takeErrorScreenShot(collectorDriver);
+            LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
+        } finally {
+            collectorDriver.close();
         }
     }
 
@@ -104,7 +116,7 @@ public class RewardCollector implements Runnable {
         String timeString = Utils.millisecondsToTimeString(millisTillFiveToTwelve);
         LOG.info(Utils.getMessage("rewardCollector.info.sleep.tasks", timeString));
         try {
-            Thread.sleep(millisTillFiveToTwelve);
+            Thread.sleep(millisTillFiveToTwelve > 0 ? millisTillFiveToTwelve : 0);
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
         }
@@ -120,7 +132,7 @@ public class RewardCollector implements Runnable {
         String timeString = Utils.millisecondsToTimeString(millisTillOnePastZero);
         LOG.info(Utils.getMessage("rewardCollector.info.sleep.daily", timeString));
         try {
-            Thread.sleep(millisTillOnePastZero);
+            Thread.sleep(millisTillOnePastZero > 0 ? millisTillOnePastZero : 0);
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
         }

@@ -3,8 +3,10 @@ package ru.b_r_bender.web.controller;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.model.entities.AttackOption;
+import ru.b_r_bender.web.model.pages.MainPage;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
 
@@ -32,24 +34,35 @@ public class Duelist implements Runnable {
     private boolean duelAvailable;
     private WebDriver duelistDriver;
 
-    public Duelist(WebDriver webDriver, boolean duelAvailable) {
-        this.duelAvailable = duelAvailable;
+    public Duelist(WebDriver webDriver) {
         this.duelistDriver = SeleniumUtils.cloneDriverInstance(webDriver, DUEL_PAGE_URI);
+        this.duelAvailable = !isCoolDownActive();
         LOG.info(Utils.getMessage("duelist.info.created"));
     }
 
     public void run() {
-        LOG.info(Utils.getMessage("duelist.info.thread.start"));
-        while (true) {
-            if (duelAvailable) {
-                killEmAll();
-                if (isNexFreeDuelAvailable()) {
-                    getNextFreeDuel();
+        try {
+            LOG.info(Utils.getMessage("duelist.info.thread.start"));
+            while (true) {
+                if (duelAvailable) {
+                    killEmAll();
+                    if (isNexFreeDuelAvailable()) {
+                        getNextFreeDuel();
+                    }
+                    duelAvailable = !isCoolDownActive();
+                } else {
+                    rest();
                 }
-                duelAvailable = !isCoolDownActive();
-            } else {
-                rest();
             }
+        } catch (WebDriverException e) {
+            LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
+            duelistDriver.close();
+            MainPage.resurrectMe(Duelist.class);
+        } catch (Exception e) {
+            String screenName = SeleniumUtils.takeErrorScreenShot(duelistDriver);
+            LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
+        } finally {
+            duelistDriver.close();
         }
     }
 
@@ -145,13 +158,13 @@ public class Duelist implements Runnable {
                 AttackOption attackOption =
                         new AttackOption(heroCards.get(i), opponentStrength, damageMultiplier, heroStrength);
                 attackOptions.add(attackOption);
-                LOG.info(Utils.getMessage("duelist.info.duel.step.attackOption", i + 1, attackOption));
+//                LOG.info(Utils.getMessage("duelist.info.duel.step.attackOption", i + 1, attackOption));
             }
             Collections.sort(attackOptions);
             AttackOption bestAttackOption = attackOptions.get(2);
             LOG.info(Utils.getMessage("duelist.info.duel.step.attack", bestAttackOption));
             try {
-                Thread.sleep(Utils.getSuperShortDelay());
+                Thread.sleep(Utils.getShortDelay());
             } catch (InterruptedException e) {
                 LOG.error(e.getMessage(), e);
             }

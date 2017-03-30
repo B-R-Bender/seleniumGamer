@@ -3,8 +3,10 @@ package ru.b_r_bender.web.controller;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.model.entities.AttackOption;
+import ru.b_r_bender.web.model.pages.MainPage;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 import ru.b_r_bender.web.utils.Utils;
 
@@ -33,10 +35,21 @@ public class DungeonKeeper implements Runnable {
 
     @Override
     public void run() {
-        LOG.info(Utils.getMessage("dungeonKeeper.info.thread.start"));
-        while (true) {
-            downToTheDungeon();
-            breatheSomeFreshAir();
+        try {
+            LOG.info(Utils.getMessage("dungeonKeeper.info.thread.start"));
+            while (true) {
+                downToTheDungeon();
+                breatheSomeFreshAir();
+            }
+        } catch (WebDriverException e) {
+            LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
+            keeperDriver.close();
+            MainPage.resurrectMe(DungeonKeeper.class);
+        } catch (Exception e) {
+            String screenName = SeleniumUtils.takeErrorScreenShot(keeperDriver);
+            LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
+        } finally {
+            keeperDriver.close();
         }
     }
 
@@ -81,6 +94,7 @@ public class DungeonKeeper implements Runnable {
                     .orElse(0L);
             LOG.info(Utils.getMessage("dungeonKeeper.info.goingUpFromTheDungeon", Utils.millisecondsToTimeString(dungeonCoolDownTime)));
             Thread.sleep(dungeonCoolDownTime);
+            SeleniumUtils.refresh(keeperDriver);
             LOG.info(Utils.getMessage("dungeonKeeper.info.relaxed"));
         } catch (InterruptedException e) {
             e.printStackTrace();

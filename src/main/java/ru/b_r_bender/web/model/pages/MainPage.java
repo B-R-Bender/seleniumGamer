@@ -6,6 +6,10 @@ import org.openqa.selenium.WebDriver;
 import ru.b_r_bender.web.controller.*;
 import ru.b_r_bender.web.utils.SeleniumUtils;
 
+import java.lang.reflect.Constructor;
+import java.util.Date;
+
+
 /**
  * @author BRBender created on 28.02.2017.
  */
@@ -26,22 +30,22 @@ public class MainPage extends AbstractPage {
     private boolean urfinAvailable;
     private boolean tournamentAvailable;
 
+    private static int numberOfThreadsResurrected;
+    private static long millisWhenFirstThreadDied;
+    private static WebDriver mainPageWebDriver;
+
     MainPage(WebDriver webDriver) {
         super(webDriver, MAIN_PAGE_URI);
     }
 
     @Override
     void initPage() {
-        try {
-            Thread.sleep(10_000);
-            reloadPage();
-            duelAvailable = checkElementAvailability(DUEL_LOCATOR);
-            dungeonAvailable = checkElementAvailability(DUNGEON_LOCATOR);
-            urfinAvailable = checkElementAvailability(URFIN_LOCATOR);
-            tournamentAvailable = checkElementAvailability(TOURNAMENT_LOCATOR);
-        } catch (InterruptedException e) {
-            LOG.error(e.getMessage(), e);
-        }
+        reloadPage();
+        mainPageWebDriver = webDriver;
+        duelAvailable = checkElementAvailability(DUEL_LOCATOR);
+        dungeonAvailable = checkElementAvailability(DUNGEON_LOCATOR);
+        urfinAvailable = checkElementAvailability(URFIN_LOCATOR);
+        tournamentAvailable = checkElementAvailability(TOURNAMENT_LOCATOR);
     }
 
     private boolean checkElementAvailability(By elementLocator) {
@@ -49,16 +53,51 @@ public class MainPage extends AbstractPage {
     }
 
     public void go() {
-        Thread rewardCollectorThread = new Thread(new RewardCollector(webDriver), "Reward Collector Thread");
-        rewardCollectorThread.start();
-        initPage();
-        Thread duelThread = new Thread(new Duelist(webDriver, duelAvailable), "Duelist Thread");
-        duelThread.start();
-        Thread shopThread = new Thread(new Shopper(webDriver), "Shopper Thread");
-        shopThread.start();
-        Thread deckManagerThread = new Thread(new DeckManager(webDriver), "Deck Manager Thread");
-        deckManagerThread.start();
-        Thread gladiatorThread = new Thread(new Gladiator(webDriver), "Gladiator Thread");
-        gladiatorThread.start();
+        try {
+            Thread rewardCollectorThread = new Thread(new RewardCollector(webDriver), "Reward Collector Thread");
+            rewardCollectorThread.start();
+            Thread.sleep(5_000);
+            initPage();
+            Thread duelThread = new Thread(new Duelist(webDriver), "Duelist Thread");
+            duelThread.start();
+            Thread.sleep(360_000);
+            Thread shopThread = new Thread(new Shopper(webDriver), "Shopper Thread");
+            shopThread.start();
+            Thread.sleep(120_000);
+            Thread deckManagerThread = new Thread(new DeckManager(webDriver), "Deck Manager Thread");
+            deckManagerThread.start();
+            Thread.sleep(180_000);
+            Thread gladiatorThread = new Thread(new Gladiator(webDriver), "Gladiator Thread");
+            gladiatorThread.start();
+            Thread.sleep(300_000);
+            Thread dungeonKeeperThread = new Thread(new DungeonKeeper(webDriver), "Dungeon Keeper Thread");
+            dungeonKeeperThread.start();
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    public static synchronized <T extends Runnable> void resurrectMe(Class<T> deadOne) {
+        long now = new Date().getTime();
+        if (numberOfThreadsResurrected % 10 == 0) {
+            if (now - millisWhenFirstThreadDied <= 60_000) {
+                LOG.error("Something went very wrong - more then 10 threads resurrections in 60 seconds, " +
+                                                                                        "system will shutdown now.");
+                System.exit(-1);
+            }
+            millisWhenFirstThreadDied = now;
+        }
+        bringItToLife(deadOne);
+        numberOfThreadsResurrected++;
+    }
+
+    private static <T extends Runnable> void bringItToLife(Class<T> deadOne) {
+        try {
+            Constructor<T> constructor = deadOne.getConstructor(WebDriver.class);
+            T instance = constructor.newInstance(mainPageWebDriver);
+            new Thread(instance).run();
+        } catch (ReflectiveOperationException e) {
+            LOG.error("Unable to resurrect " + deadOne, e);
+        }
     }
 }

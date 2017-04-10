@@ -40,11 +40,12 @@ public class DeckManager implements Runnable {
     }
 
     public DeckManager(WebDriver webDriver) {
-        LOG.info(Utils.getMessage("deckManager.info.created"));
         managerDriver = SeleniumUtils.cloneDriverInstance(webDriver, PLAY_DECK_PAGE_URI);
+        MainPage.addDriver(managerDriver);
         playDeck = updateDeck(PLAY_DECK_PAGE_URI);
         weakDeck = updateDeck(WEAK_DECK_PAGE_URI);
         upgradeCounts = Reward.UPGRADE_5_PLAY_CARDS.getRewardProgress(webDriver);
+        LOG.info(Utils.getMessage("deckManager.info.created"));
     }
 
     private List<PlayCard> updateDeck(String deckURI) {
@@ -61,12 +62,13 @@ public class DeckManager implements Runnable {
             }
 
             List<WebElement> cardElements = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR);
-            for (int i = 0; i < cardElements.size(); i++) {
+            for (int i = 0; i < (deckURI.equals(PLAY_DECK_PAGE_URI) ? cardElements.size() : 5); i++) {
                 WebElement cardElement = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR).get(i);
                 cardElement.click();
-                Thread.sleep(Utils.getShortDelay() * 2);
                 result.add(new PlayCard(managerDriver));
+                Thread.sleep(Utils.getThreeSecondsDelay());
                 managerDriver.get(deckURI);
+                Thread.sleep(Utils.getThreeSecondsDelay());
             }
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
@@ -148,6 +150,19 @@ public class DeckManager implements Runnable {
                 LOG.info(Utils.getMessage("deckManager.info.deck.manager.wake"));
             } else {
                 long coolDownTime = Utils.calculateElementCoolDownTime(PLAY_DECK_PAGE_URI);
+
+                Calendar now = SeleniumUtils.getServerTime(managerDriver);
+                now.add(Calendar.MILLISECOND, (int) coolDownTime);
+                final int DAY_OF_WEEK = now.get(Calendar.DAY_OF_WEEK);
+
+                if (DAY_OF_WEEK == Calendar.FRIDAY || DAY_OF_WEEK == Calendar.SATURDAY) {
+                    coolDownTime += DAY_OF_WEEK == Calendar.FRIDAY ? 86_400_000 * 2 : 86_400_000;
+                    String day = DAY_OF_WEEK == Calendar.FRIDAY
+                            ? Utils.getMessage("common.friday")
+                            : Utils.getMessage("common.saturday");
+                    LOG.info(Utils.getMessage("deckManager.info.deck.manager.weekendSleep", day));
+                }
+
                 String timeString = Utils.millisecondsToTimeString(coolDownTime);
 
                 LOG.info(Utils.getMessage("deckManager.info.deck.manager.sleep", timeString));

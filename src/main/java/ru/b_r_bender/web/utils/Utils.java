@@ -4,10 +4,11 @@ import org.apache.log4j.Logger;
 import org.openqa.selenium.WebElement;
 import ru.b_r_bender.web.controller.*;
 
-import java.io.FileInputStream;
+import javax.mail.*;
+import javax.mail.internet.*;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -50,7 +51,7 @@ public class Utils {
      */
     public static long calculateElementCoolDownTime(String pageUri, WebElement coolDownElement) {
         switch (pageUri) {
-            case RefusingGuy.REFUSING_GUY_PAGE_URI:
+            case Watcher.REFUSING_GUY_PAGE_URI:
                 return 3_600_000 + getLongDelay();
             case DungeonKeeper.DUNGEON_PAGE_URI:
                 return parseCoolDownString(coolDownElement.getText());
@@ -106,10 +107,19 @@ public class Utils {
     /**
      * Return 10 seconds delay.
      *
-     * @return random delay in milliseconds
+     * @return delay in milliseconds
      */
     public static long getTenSecondsDelay() {
         return 10_000;
+    }
+
+    /**
+     * Return 3 seconds delay.
+     *
+     * @return delay in milliseconds
+     */
+    public static long getThreeSecondsDelay() {
+        return 3_000;
     }
 
     /**
@@ -154,20 +164,35 @@ public class Utils {
      * @return time in formatted string
      */
     public static String millisecondsToTimeString(long millis) {
+        long day = (millis / (1000 * 60 * 60 * 24)) % 7;
         long hour = (millis / (1000 * 60 * 60)) % 24;
         long minute = (millis / (1000 * 60)) % 60;
         long second = (millis / 1000) % 60;
 
-        return String.format("%02d ч : %02d мин : %02d сек", hour, minute, second);
+        StringBuilder builder = new StringBuilder();
+        if (day != 0) {
+            builder.append(String.format("%02d д : ", day));
+        }
+        if (hour != 0 || builder.length() != 0) {
+            builder.append(String.format("%02d ч : ", hour));
+        }
+        if (minute != 0 || builder.length() != 0) {
+            builder.append(String.format("%02d мин : ", minute));
+        }
+        if (second != 0 || builder.length() != 0) {
+            builder.append(String.format("%02d сек", second));
+        }
+
+        return builder.toString();
     }
 
     /**
-     * Return random integer in range 31-53 to be used as boundary of skipped opponents.
+     * Return random integer in range 41-63 to be used as boundary of skipped opponents.
      *
-     * @return random integer in range 31-53
+     * @return random integer in range 41-63
      */
     public static int skippedOpponentsBoundary() {
-        return random.nextInt(32) + 71;
+        return random.nextInt(22) + 41;
     }
 
     /**
@@ -206,5 +231,72 @@ public class Utils {
 
     public static String getAppProperty(String key) {
         return appProperties.getProperty(key);
+    }
+
+    public synchronized static void sendEmail(String subject, String message, String... attachFiles)
+                                                                                        throws MessagingException {
+
+        String host = getAppProperty("mail.smtp.host");
+        String port = getAppProperty("mail.smtp.port");
+        final String userName = getAppProperty("mail.user");
+        final String password = getAppProperty("mail.password");
+        final String receiverAddress = getAppProperty("mail.receiver.address");
+        final String senderAddress = getAppProperty("mail.user.address");
+
+        // sets SMTP server properties
+        Properties properties = new Properties();
+        properties.put("mail.smtp.host", host);
+        properties.put("mail.smtp.port", port);
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.socketFactory.port", "465");
+        properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        properties.put("mail.user", userName);
+        properties.put("mail.password", password);
+
+        // creates a new session with an authenticator
+        Authenticator auth = new Authenticator() {
+            public PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(userName, password);
+            }
+        };
+        Session session = Session.getInstance(properties, auth);
+
+        // creates a new e-mail message
+        Message msg = new MimeMessage(session);
+
+        msg.setFrom(new InternetAddress(senderAddress));
+        InternetAddress[] toAddresses = { new InternetAddress(receiverAddress) };
+        msg.setRecipients(Message.RecipientType.TO, toAddresses);
+        msg.setSubject(subject);
+        msg.setSentDate(new Date());
+
+        // creates message part
+        MimeBodyPart messageBodyPart = new MimeBodyPart();
+        messageBodyPart.setText(message, "UTF-8", "plain");
+
+        // creates multi-part
+        Multipart multipart = new MimeMultipart();
+        multipart.addBodyPart(messageBodyPart);
+
+        // adds attachments
+        if (attachFiles != null && attachFiles.length > 0) {
+            for (String filePath : attachFiles) {
+                MimeBodyPart attachPart = new MimeBodyPart();
+
+                try {
+                    attachPart.attachFile(filePath);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+                multipart.addBodyPart(attachPart);
+            }
+        }
+
+        // sets the multi-part as e-mail's content
+        msg.setContent(multipart);
+
+        // sends the e-mail
+        Transport.send(msg);
     }
 }

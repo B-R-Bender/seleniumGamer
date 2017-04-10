@@ -25,13 +25,14 @@ public class RewardCollector implements Runnable {
 
     private static final By MAIN_PAGE_DAILY_REWARD_LOCATOR = By.cssSelector("a[href*='/dailyreward/take/']");
     private static final By DAILY_TASKS_REWARDS_LOCATOR = By.cssSelector("a[href*='/daily/reward/']");
-    private static final By MARATHON_REWARD_LOCATOR = By.xpath("//a[@href='/notif/OapojAzy/']");
+    private static final By MARATHON_REWARD_LOCATOR = By.cssSelector("a[href*='/notif/'][class*='orange btn bli mlra']");
     private static final By MARATHON_END_REWARD_LOCATOR = By.cssSelector(".end");
 
     private WebDriver collectorDriver;
 
     public RewardCollector(WebDriver webDriver) {
-        this.collectorDriver = SeleniumUtils.cloneDriverInstance(webDriver, COLLECTOR_PAGE_URI);
+        collectorDriver = SeleniumUtils.cloneDriverInstance(webDriver, COLLECTOR_PAGE_URI);
+        MainPage.addDriver(collectorDriver);
         LOG.info(Utils.getMessage("rewardCollector.info.created"));
     }
 
@@ -59,9 +60,11 @@ public class RewardCollector implements Runnable {
     }
 
     private void collectWeeklyReward() {
-        int dayOfTheWeek = Calendar.getInstance(TimeZone.getTimeZone("Europe/Moscow")).get(Calendar.DAY_OF_WEEK);
-        if (dayOfTheWeek == Calendar.SATURDAY) {
-            LOG.info(Utils.getMessage("rewardCollector.info.weekly.saturday"));
+        int dayOfTheWeek = SeleniumUtils.getServerTime(collectorDriver).get(Calendar.DAY_OF_WEEK);
+        if (dayOfTheWeek == Calendar.SATURDAY || dayOfTheWeek == Calendar.SUNDAY) {
+            LOG.info(Utils.getMessage("rewardCollector.info.weekly.saturday", dayOfTheWeek == Calendar.SATURDAY
+                                                                                ? Utils.getMessage("common.saturday")
+                                                                                : Utils.getMessage("common.saturday")));
             WebElement marathonElement = SeleniumUtils.getWebElement(collectorDriver, MARATHON_REWARD_LOCATOR);
             boolean weeklyRewardAvailable = marathonElement != null;
             if (weeklyRewardAvailable) {

@@ -24,7 +24,7 @@ public class PlayCard implements Comparable<PlayCard> {
     private static final By UPGRADE_CARD_CONFIRM_LOCATOR = By.cssSelector("a[class*='w100px'][href*='confirmed']");
     private static final By UPGRADE_CARD_SUCCESS_LOCATOR = By.cssSelector(".msg.green.mt5");
     private static final By GOLD_LOCATOR = By.cssSelector(".c_gold");
-    private static final By UPGRADE_COST_LOCATOR = By.xpath("//*[text()[contains(.,'Цена')]]");
+    private static final By UPGRADE_COST_LOCATOR = By.xpath("//*[text()[contains(.,'Поднять уровень за')]]");
 
     private static final String CARD_ATTRIBUTES_IN_PLAY_DECK = "В колоде";
     private static final String CARD_ATTRIBUTES_PROTECTED = "Защищена";
@@ -128,8 +128,8 @@ public class PlayCard implements Comparable<PlayCard> {
 
     private boolean sufficientFounds(WebDriver managerDriver) {
         Integer heroGold = SeleniumUtils.getIntValueFromElement(managerDriver, GOLD_LOCATOR);
-        Integer upgradeCost = SeleniumUtils.getIntValueFromElementByIndex(managerDriver, UPGRADE_COST_LOCATOR, 1);
-        return heroGold >= upgradeCost;
+        Integer upgradeCost = SeleniumUtils.getIntValueFromElement(managerDriver, UPGRADE_COST_LOCATOR);
+        return heroGold == null || upgradeCost== null ? false : heroGold >= upgradeCost;
     }
 
     private int calculateBasicStrength(){

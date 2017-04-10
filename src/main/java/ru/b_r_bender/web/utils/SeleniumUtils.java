@@ -54,6 +54,7 @@ public class SeleniumUtils {
     public synchronized static boolean driverDismiss(WebDriver webDriver) {
         if (webDriver != null) {
             webDriver.close();
+            webDriver.quit();
             return createdDrivers.remove(webDriver);
         } else {
             return false;
@@ -114,11 +115,20 @@ public class SeleniumUtils {
         Integer result = null;
         if (webElement != null) {
             String valueString = webElement.getText().split("\n")[valuedIndex];
-            if (valueString.contains("K")) {
-                Double parsedDouble = Double.valueOf(valueString.substring(0, valueString.length() - 1)) * 1_000;
+            if (valueString.contains("M")) {
+                String substring = valueString.substring(0, valueString.length() - 1);
+                Double parsedDouble = Double.valueOf(substring) * 1_000_000;
+                result = parsedDouble.intValue();
+            } else if (valueString.contains("K")) {
+                String substring = valueString.substring(0, valueString.length() - 1);
+                Double parsedDouble = Double.valueOf(substring) * 1_000;
                 result = parsedDouble.intValue();
             } else {
-                result = Integer.valueOf(valueString.replaceAll("[^\\d]", ""));
+                String clearString = valueString.replaceAll("[^\\d]", "");
+                if (clearString.equals("")) {
+                    return null;
+                }
+                result = Integer.valueOf(clearString);
             }
         }
         return result;

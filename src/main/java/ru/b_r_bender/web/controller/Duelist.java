@@ -35,8 +35,9 @@ public class Duelist implements Runnable {
     private WebDriver duelistDriver;
 
     public Duelist(WebDriver webDriver) {
-        this.duelistDriver = SeleniumUtils.cloneDriverInstance(webDriver, DUEL_PAGE_URI);
-        this.duelAvailable = !isCoolDownActive();
+        duelistDriver = SeleniumUtils.cloneDriverInstance(webDriver, DUEL_PAGE_URI);
+        duelAvailable = !isCoolDownActive();
+        MainPage.addDriver(duelistDriver);
         LOG.info(Utils.getMessage("duelist.info.created"));
     }
 
@@ -111,13 +112,18 @@ public class Duelist implements Runnable {
         }
         Integer heroStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, HERO_STATS_LOCATOR);
         Integer opponentStrength = SeleniumUtils.getIntValueFromElement(duelistDriver, OPPONENT_STATS_LOCATOR);
-        boolean result = opponentStrength < calculatedMinOpponentStrength(heroStrength)
-                            || opponentStrength > calculatedMaxOpponentStrength(heroStrength);
+        boolean opponentIsToWeak = opponentStrength < calculatedMinOpponentStrength(heroStrength);
+        boolean opponentIsToStrong = opponentStrength > calculatedMaxOpponentStrength(heroStrength);
+        boolean result = opponentIsToWeak || opponentIsToStrong;
         LOG.info(Utils.getMessage("duelist.info.comparingOpponent",
                 opponentSkipCount,
                 heroStrength,
                 opponentStrength,
-                result ? "Opponent is to strong" : "Duelist has found \"our guy\""));
+                result
+                        ? opponentIsToWeak
+                            ? Utils.getMessage("duelist.info.opponent.Weak")
+                            : Utils.getMessage("duelist.info.opponent.Strong")
+                        : Utils.getMessage("duelist.info.opponent.Right")));
         return result;
     }
 
@@ -131,7 +137,6 @@ public class Duelist implements Runnable {
     }
 
     private void findNewOpponent() {
-        LOG.info(Utils.getMessage("duelist.info.attemptToFindOpponent.getNext"));
         SeleniumUtils.getWebElement(duelistDriver, NEXT_BATTLE_BUTTON_LOCATOR).click();
     }
 
@@ -151,7 +156,7 @@ public class Duelist implements Runnable {
             List<WebElement> damageMultipliers = SeleniumUtils.getWebElements(duelistDriver, DAMAGE_MULTIPLIER_BUTTON_LOCATOR);
             List<WebElement> heroCards = SeleniumUtils.getWebElements(duelistDriver, HERO_CARDS_BUTTON_LOCATOR);
             List<AttackOption> attackOptions = new ArrayList<>(3);
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < heroCards.size(); i++) {
                 int opponentStrength = Integer.parseInt(opponentCards.get(i).getText());
                 double damageMultiplier = Utils.parseMultiplierValue(damageMultipliers.get(i).getText());
                 int heroStrength = Integer.parseInt(heroCards.get(i).getText());
@@ -160,15 +165,22 @@ public class Duelist implements Runnable {
                 attackOptions.add(attackOption);
 //                LOG.info(Utils.getMessage("duelist.info.duel.step.attackOption", i + 1, attackOption));
             }
-            Collections.sort(attackOptions);
-            AttackOption bestAttackOption = attackOptions.get(2);
-            LOG.info(Utils.getMessage("duelist.info.duel.step.attack", bestAttackOption));
             try {
-                Thread.sleep(Utils.getShortDelay());
+                if (attackOptions.size() > 0) {
+
+                    Collections.sort(attackOptions);
+                    AttackOption bestAttackOption = attackOptions.get(attackOptions.size() - 1);
+                    LOG.info(Utils.getMessage("duelist.info.duel.step.attack", bestAttackOption));
+                    bestAttackOption.attack();
+
+                    Thread.sleep(Utils.getThreeSecondsDelay());
+                } else {
+                    Thread.sleep(Utils.getTenSecondsDelay());
+                    SeleniumUtils.refresh(duelistDriver);
+                }
             } catch (InterruptedException e) {
                 LOG.error(e.getMessage(), e);
             }
-            bestAttackOption.attack();
         }
     }
 

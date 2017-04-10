@@ -29,7 +29,8 @@ public class DungeonKeeper implements Runnable {
     private WebDriver keeperDriver;
 
     public DungeonKeeper(WebDriver webDriver) {
-        this.keeperDriver = SeleniumUtils.cloneDriverInstance(webDriver, DUNGEON_PAGE_URI);
+        keeperDriver = SeleniumUtils.cloneDriverInstance(webDriver, DUNGEON_PAGE_URI);
+        MainPage.addDriver(keeperDriver);
         LOG.info(Utils.getMessage("dungeonKeeper.info.created"));
     }
 

@@ -39,8 +39,9 @@ public class Gladiator implements Runnable {
     private int arenaWins;
     private int arenaParticipate;
 
-    public Gladiator(WebDriver gladiatorDriver) {
-        this.gladiatorDriver = SeleniumUtils.cloneDriverInstance(gladiatorDriver, ARENA_PAGE_URI);
+    public Gladiator(WebDriver webDriver) {
+        gladiatorDriver = SeleniumUtils.cloneDriverInstance(webDriver, ARENA_PAGE_URI);
+        MainPage.addDriver(gladiatorDriver);
         LOG.info(Utils.getMessage("gladiator.info.created"));
     }
 
@@ -65,7 +66,7 @@ public class Gladiator implements Runnable {
     }
 
     private void forTheEmperor() {
-        LOG.info(Utils.getMessage("gladiator.info.forTheEmperor", Utils.getAppProperty("login")));
+        LOG.info(Utils.getMessage("gladiator.info.forTheEmperor", Utils.getAppProperty("game.login")));
         arenaWins = 0;
         arenaParticipate = 0;
         WebElement arenaTasksElement;

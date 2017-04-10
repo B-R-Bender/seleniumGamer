@@ -32,9 +32,10 @@ public class Shopper implements Runnable {
     private int heroGold;
 
     public Shopper(WebDriver webDriver) {
-        LOG.info(Utils.getMessage("shopper.info.created"));
         shopperDriver = SeleniumUtils.cloneDriverInstance(webDriver, MARKET_PAGE_URI);
+        MainPage.addDriver(shopperDriver);
         updateTreasury();
+        LOG.info(Utils.getMessage("shopper.info.created"));
     }
 
     private void updateTreasury() {

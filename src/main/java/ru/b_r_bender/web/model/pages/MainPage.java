@@ -8,6 +8,8 @@ import ru.b_r_bender.web.utils.SeleniumUtils;
 
 import java.lang.reflect.Constructor;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -33,45 +35,62 @@ public class MainPage extends AbstractPage {
     private static int numberOfThreadsResurrected;
     private static long millisWhenFirstThreadDied;
     private static WebDriver mainPageWebDriver;
+    private static Set<WebDriver> appWebDrivers;
+    private static ThreadGroup mainPageThreads;
+
+    static {
+        appWebDrivers = new HashSet<>();
+        mainPageThreads = new ThreadGroup("Main Page Thread Group");
+    }
 
     MainPage(WebDriver webDriver) {
         super(webDriver, MAIN_PAGE_URI);
+        initPage();
     }
 
     @Override
     void initPage() {
         reloadPage();
         mainPageWebDriver = webDriver;
-        duelAvailable = checkElementAvailability(DUEL_LOCATOR);
-        dungeonAvailable = checkElementAvailability(DUNGEON_LOCATOR);
-        urfinAvailable = checkElementAvailability(URFIN_LOCATOR);
-        tournamentAvailable = checkElementAvailability(TOURNAMENT_LOCATOR);
-    }
-
-    private boolean checkElementAvailability(By elementLocator) {
-        return !SeleniumUtils.getWebElement(webDriver, elementLocator).getAttribute("class").contains(MAIN_PAGE_DISABLE_FLAG);
+        appWebDrivers.add(webDriver);
     }
 
     public void go() {
         try {
-            Thread rewardCollectorThread = new Thread(new RewardCollector(webDriver), "Reward Collector Thread");
+            Thread rewardCollectorThread = new Thread(mainPageThreads, new RewardCollector(webDriver), RewardCollector.class.getName());
             rewardCollectorThread.start();
             Thread.sleep(5_000);
-            initPage();
-            Thread duelThread = new Thread(new Duelist(webDriver), "Duelist Thread");
+            Thread watcherThread = new Thread(mainPageThreads, new Watcher(webDriver), Watcher.class.getName());
+            watcherThread.start();
+            Thread.sleep(60_000);
+            Thread duelThread = new Thread(mainPageThreads, new Duelist(webDriver), Duelist.class.getName());
             duelThread.start();
             Thread.sleep(360_000);
-            Thread shopThread = new Thread(new Shopper(webDriver), "Shopper Thread");
+            Thread shopThread = new Thread(mainPageThreads, new Shopper(webDriver), Shopper.class.getName());
             shopThread.start();
             Thread.sleep(120_000);
-            Thread deckManagerThread = new Thread(new DeckManager(webDriver), "Deck Manager Thread");
+            Thread deckManagerThread = new Thread(mainPageThreads, new DeckManager(webDriver), DeckManager.class.getName());
             deckManagerThread.start();
             Thread.sleep(180_000);
-            Thread gladiatorThread = new Thread(new Gladiator(webDriver), "Gladiator Thread");
+            Thread gladiatorThread = new Thread(mainPageThreads, new Gladiator(webDriver), Gladiator.class.getName());
             gladiatorThread.start();
             Thread.sleep(300_000);
-            Thread dungeonKeeperThread = new Thread(new DungeonKeeper(webDriver), "Dungeon Keeper Thread");
+            Thread dungeonKeeperThread = new Thread(mainPageThreads, new DungeonKeeper(webDriver), DungeonKeeper.class.getName());
             dungeonKeeperThread.start();
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    public static synchronized void stop() {
+        try {
+            Thread[] threads = new Thread[mainPageThreads.activeCount()];
+            mainPageThreads.enumerate(threads);
+            for (Thread thread : threads) {
+                thread.interrupt();
+            }
+            Thread.sleep(30_000);
+            appWebDrivers.forEach(WebDriver::quit);
         } catch (InterruptedException e) {
             LOG.error(e.getMessage(), e);
         }
@@ -83,6 +102,7 @@ public class MainPage extends AbstractPage {
             if (now - millisWhenFirstThreadDied <= 60_000) {
                 LOG.error("Something went very wrong - more then 10 threads resurrections in 60 seconds, " +
                                                                                         "system will shutdown now.");
+                stop();
                 System.exit(-1);
             }
             millisWhenFirstThreadDied = now;
@@ -93,11 +113,20 @@ public class MainPage extends AbstractPage {
 
     private static <T extends Runnable> void bringItToLife(Class<T> deadOne) {
         try {
+            SeleniumUtils.refresh(mainPageWebDriver);
             Constructor<T> constructor = deadOne.getConstructor(WebDriver.class);
             T instance = constructor.newInstance(mainPageWebDriver);
-            new Thread(instance).run();
+            new Thread(mainPageThreads, instance, instance.getClass().getSimpleName()).start();
         } catch (ReflectiveOperationException e) {
             LOG.error("Unable to resurrect " + deadOne, e);
         }
+    }
+
+    private boolean checkElementAvailability(By elementLocator) {
+        return !SeleniumUtils.getWebElement(webDriver, elementLocator).getAttribute("class").contains(MAIN_PAGE_DISABLE_FLAG);
+    }
+
+    public static void addDriver(WebDriver webDriver) {
+        appWebDrivers.add(webDriver);
     }
 }

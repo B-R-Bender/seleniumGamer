@@ -1,5 +1,7 @@
 package ru.b_r_bender.web;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import ru.b_r_bender.web.controller.DeckManager;
@@ -11,27 +13,33 @@ import ru.b_r_bender.web.utils.SeleniumUtils;
 import javax.security.auth.login.FailedLoginException;
 
 /**
- * @author Homenko created on 16.03.2017.
+ * @author BRBender created on 16.03.2017.
  */
 public class RewardsCollectorTest {
 
-    @Test
-    public void rewardsCollectorTest() {
-        WebDriver webDriver = SeleniumUtils.getNewDriverInstance();
+    private static WebDriver webDriver;
+
+    @Before
+    public void init() {
+        webDriver = SeleniumUtils.getNewDriverInstance();
 
         try {
             EnterPage enterPage = new EnterPage(webDriver);
             LoginPage loginPage = enterPage.registeredUserEntry();
             loginPage.login();
-
-            new RewardCollector(webDriver).run();
-            System.out.println("test");
         } catch (FailedLoginException e) {
             System.out.println(e);
         }
+    }
 
+    @After
+    public void destroy() {
         SeleniumUtils.driverDismiss(webDriver);
     }
 
+    @Test
+    public void rewardsCollectorTest() {
+        new RewardCollector(webDriver).run();
+    }
 
 }

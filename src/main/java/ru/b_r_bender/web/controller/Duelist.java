@@ -57,13 +57,12 @@ public class Duelist implements Runnable {
             }
         } catch (WebDriverException e) {
             LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
-            duelistDriver.close();
-            MainPage.resurrectMe(Duelist.class);
+            MainPage.resurrectMe(Duelist.class, duelistDriver);
         } catch (Exception e) {
             String screenName = SeleniumUtils.takeErrorScreenShot(duelistDriver);
             LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
         } finally {
-            duelistDriver.close();
+            SeleniumUtils.driverDismiss(duelistDriver);
         }
     }
 
@@ -132,8 +131,8 @@ public class Duelist implements Runnable {
     }
 
     private int calculatedMinOpponentStrength(final int heroStrength) {
-//        return heroStrength - new Long(Math.round(heroStrength * 0.05)).intValue();
-        return heroStrength + new Long(Math.round(heroStrength * 0.01)).intValue();
+        return heroStrength - new Long(Math.round(heroStrength * 0.05)).intValue();
+//        return heroStrength + new Long(Math.round(heroStrength * 0.01)).intValue();
     }
 
     private void findNewOpponent() {

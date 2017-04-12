@@ -28,6 +28,7 @@ public class MainPageTest {
             EnterPage enterPage = new EnterPage(webDriver);
             LoginPage loginPage = enterPage.registeredUserEntry();
             mainPage = loginPage.login();
+            System.out.println("Login complete");
         } catch (FailedLoginException e) {
             e.printStackTrace();
         }
@@ -40,13 +41,13 @@ public class MainPageTest {
 
     @Test
     public void resurrectionTest() {
-            MainPage.resurrectMe(RewardCollector.class);
-            MainPage.resurrectMe(DeckManager.class);
-            MainPage.resurrectMe(Duelist.class);
-            MainPage.resurrectMe(DungeonKeeper.class);
-            MainPage.resurrectMe(Gladiator.class);
-            MainPage.resurrectMe(Shopper.class);
-            MainPage.resurrectMe(Watcher.class);
+//            MainPage.resurrectMe(RewardCollector.class);
+//            MainPage.resurrectMe(DeckManager.class);
+//            MainPage.resurrectMe(Duelist.class);
+//            MainPage.resurrectMe(DungeonKeeper.class);
+//            MainPage.resurrectMe(Gladiator.class);
+//            MainPage.resurrectMe(Shopper.class);
+//            MainPage.resurrectMe(Watcher.class);
     }
 
 }

@@ -93,13 +93,12 @@ public class DeckManager implements Runnable {
             }
         } catch (WebDriverException e) {
             LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
-            managerDriver.close();
-            MainPage.resurrectMe(DeckManager.class);
+            MainPage.resurrectMe(DeckManager.class, managerDriver);
         } catch (Exception e) {
             String screenName = SeleniumUtils.takeErrorScreenShot(managerDriver);
             LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
         } finally {
-            managerDriver.close();
+            SeleniumUtils.driverDismiss(managerDriver);
         }
     }
 

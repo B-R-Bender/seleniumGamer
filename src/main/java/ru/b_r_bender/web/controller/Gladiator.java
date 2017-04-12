@@ -55,13 +55,12 @@ public class Gladiator implements Runnable {
             }
         } catch (WebDriverException e) {
             LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
-            gladiatorDriver.close();
-            MainPage.resurrectMe(Gladiator.class);
+            MainPage.resurrectMe(Gladiator.class, gladiatorDriver);
         } catch (Exception e) {
             String screenName = SeleniumUtils.takeErrorScreenShot(gladiatorDriver);
             LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
         } finally {
-            gladiatorDriver.close();
+            SeleniumUtils.driverDismiss(gladiatorDriver);
         }
     }
 

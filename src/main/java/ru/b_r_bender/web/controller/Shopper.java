@@ -56,13 +56,12 @@ public class Shopper implements Runnable {
             }
         } catch (WebDriverException e) {
             LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
-            shopperDriver.close();
-            MainPage.resurrectMe(Shopper.class);
+            MainPage.resurrectMe(Shopper.class, shopperDriver);
         } catch (Exception e) {
             String screenName = SeleniumUtils.takeErrorScreenShot(shopperDriver);
             LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
         } finally {
-            shopperDriver.close();
+            SeleniumUtils.driverDismiss(shopperDriver);
         }
     }
 

@@ -49,13 +49,12 @@ public class RewardCollector implements Runnable {
             }
         } catch (WebDriverException e) {
             LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
-            collectorDriver.close();
-            MainPage.resurrectMe(RewardCollector.class);
+            MainPage.resurrectMe(RewardCollector.class, collectorDriver);
         } catch (Exception e) {
             String screenName = SeleniumUtils.takeErrorScreenShot(collectorDriver);
             LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
         } finally {
-            collectorDriver.close();
+            SeleniumUtils.driverDismiss(collectorDriver);
         }
     }
 

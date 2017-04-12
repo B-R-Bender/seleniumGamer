@@ -22,7 +22,7 @@ public class Watcher implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(Watcher.class);
 
-    public static final String REFUSING_GUY_PAGE_URI = MainPage.MAIN_PAGE_URI;
+    public static final String WATCHER_PAGE_URI = MainPage.MAIN_PAGE_URI;
 
     private static final By GUILD_INVITE_MESSAGE_LOCATOR = By.cssSelector(".clan-arms.mlra");
     private static final By GUILD_INVITING_PERSON_NAME_LOCATOR = By.cssSelector("a[href*='/user/'][class*='c_lblue4']");
@@ -37,7 +37,7 @@ public class Watcher implements Runnable {
 
     public Watcher(WebDriver webDriver) {
         unusualSet = new HashSet<>();
-        watcherDriver = SeleniumUtils.cloneDriverInstance(webDriver, REFUSING_GUY_PAGE_URI);
+        watcherDriver = SeleniumUtils.cloneDriverInstance(webDriver, WATCHER_PAGE_URI);
         MainPage.addDriver(watcherDriver);
 
         Calendar serverTime = SeleniumUtils.getServerTime(webDriver);
@@ -58,10 +58,12 @@ public class Watcher implements Runnable {
             }
         } catch (WebDriverException e) {
             LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
-            MainPage.resurrectMe(Watcher.class);
+            MainPage.resurrectMe(Watcher.class, watcherDriver);
         } catch (Exception e) {
             String screenName = SeleniumUtils.takeErrorScreenShot(watcherDriver);
             LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
+        } finally {
+            SeleniumUtils.driverDismiss(watcherDriver);
         }
     }
 
@@ -124,7 +126,7 @@ public class Watcher implements Runnable {
                 now.add(Calendar.DAY_OF_WEEK, 1);
                 tomorrow = now.get(Calendar.DAY_OF_WEEK);
             }
-            long coolDownTime = Utils.calculateElementCoolDownTime(REFUSING_GUY_PAGE_URI);
+            long coolDownTime = Utils.calculateElementCoolDownTime(WATCHER_PAGE_URI);
             LOG.info(Utils.getMessage("watcher.info.wait", Utils.millisecondsToTimeString(coolDownTime)));
             Thread.sleep(coolDownTime);
             SeleniumUtils.refresh(watcherDriver);

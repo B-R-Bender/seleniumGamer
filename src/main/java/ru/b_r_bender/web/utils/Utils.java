@@ -51,7 +51,7 @@ public class Utils {
      */
     public static long calculateElementCoolDownTime(String pageUri, WebElement coolDownElement) {
         switch (pageUri) {
-            case Watcher.REFUSING_GUY_PAGE_URI:
+            case Watcher.WATCHER_PAGE_URI:
                 return 3_600_000 + getLongDelay();
             case DungeonKeeper.DUNGEON_PAGE_URI:
                 return parseCoolDownString(coolDownElement.getText());

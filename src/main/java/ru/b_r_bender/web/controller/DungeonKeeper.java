@@ -44,13 +44,12 @@ public class DungeonKeeper implements Runnable {
             }
         } catch (WebDriverException e) {
             LOG.error("Trying to restart thread because there was an error in WebDriver: ", e);
-            keeperDriver.close();
-            MainPage.resurrectMe(DungeonKeeper.class);
+            MainPage.resurrectMe(DungeonKeeper.class, keeperDriver);
         } catch (Exception e) {
             String screenName = SeleniumUtils.takeErrorScreenShot(keeperDriver);
             LOG.error("Screen shot taken and saved in " + screenName + " for error:\n" + e.getMessage(), e);
         } finally {
-            keeperDriver.close();
+            SeleniumUtils.driverDismiss(keeperDriver);
         }
     }
 

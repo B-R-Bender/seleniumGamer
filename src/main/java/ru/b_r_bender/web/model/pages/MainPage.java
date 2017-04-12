@@ -96,7 +96,7 @@ public class MainPage extends AbstractPage {
         }
     }
 
-    public static synchronized <T extends Runnable> void resurrectMe(Class<T> deadOne) {
+    public static synchronized <T extends Runnable> void resurrectMe(Class<T> deadOne, WebDriver deadDriver) {
         long now = new Date().getTime();
         if (numberOfThreadsResurrected % 10 == 0) {
             if (now - millisWhenFirstThreadDied <= 60_000) {
@@ -107,15 +107,15 @@ public class MainPage extends AbstractPage {
             }
             millisWhenFirstThreadDied = now;
         }
-        bringItToLife(deadOne);
+        bringItToLife(deadOne, deadDriver);
         numberOfThreadsResurrected++;
     }
 
-    private static <T extends Runnable> void bringItToLife(Class<T> deadOne) {
+    private static <T extends Runnable> void bringItToLife(Class<T> deadOne, WebDriver deadDriver) {
         try {
-            SeleniumUtils.refresh(mainPageWebDriver);
+            deadDriver.get(MAIN_PAGE_URI);
             Constructor<T> constructor = deadOne.getConstructor(WebDriver.class);
-            T instance = constructor.newInstance(mainPageWebDriver);
+            T instance = constructor.newInstance(deadDriver);
             new Thread(mainPageThreads, instance, instance.getClass().getSimpleName()).start();
         } catch (ReflectiveOperationException e) {
             LOG.error("Unable to resurrect " + deadOne, e);

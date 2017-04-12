@@ -8,6 +8,7 @@ import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class SeleniumUtils {
     private static final By SERVER_TIME_LOCATOR = By.cssSelector("#server_time");
 
     private static volatile int screenShotCounter;
+    private static volatile int fileSavedCounter;
     private static List<WebDriver> createdDrivers = new ArrayList<>();
 
     private SeleniumUtils() {
@@ -175,6 +177,26 @@ public class SeleniumUtils {
             //MYTODO [Homenko] допилить обработку ошибок
             e.printStackTrace();
         }
+    }
+
+    public static synchronized String saveHTML(WebDriver webDriver) {
+        String filePath;
+        if (OS_NAME.contains("win")) {
+            filePath = "D:\\tmp\\seleniumGamerScr\\page_source" + fileSavedCounter++ + ".html";
+        } else {
+            filePath = "/home/bender/Изображения/Screenshots/seleniumGamerScr/page_source" + fileSavedCounter++ + ".png";
+        }
+
+        try {
+            File destination = new File(filePath);
+            ByteArrayInputStream source = new ByteArrayInputStream(webDriver.getPageSource().getBytes("UTF-8"));
+
+            FileUtils.copyInputStreamToFile(source, destination);
+        } catch (IOException e) {
+            //MYTODO [Homenko] допилить обработку ошибок
+            e.printStackTrace();
+        }
+        return filePath;
     }
 
     public static Calendar getServerTime(WebDriver webDriver) {

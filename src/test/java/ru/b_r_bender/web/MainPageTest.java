@@ -36,7 +36,9 @@ public class MainPageTest {
 
     @After
     public void clear() {
-        MainPage.stop();
+//        MainPage.stop();
+        webDriver.close();
+        webDriver.quit();
     }
 
     @Test

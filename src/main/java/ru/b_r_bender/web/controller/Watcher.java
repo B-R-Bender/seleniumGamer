@@ -29,7 +29,8 @@ public class Watcher implements Runnable {
     private static final By GUILD_NAME_LOCATOR = By.cssSelector("a[href*='/guild/'][class='tdn']");
     private static final By GUILD_DECLINE_BUTTON_LOCATOR = By.cssSelector("a[href*='/guild/decline/']");
     private static final By GOLD_SALE_BUTTON_LOCATOR = By.cssSelector("a[href*='/forum/'][class='c_lgreen4']");
-    private static final By UNUSUAL_BUTTON_LOCATOR = By.cssSelector(".bbtn.bbtn-yel");
+    private static final By UNUSUAL_ELEMENT_LOCATOR = By.cssSelector("div[class*='bbtn bbtn-yel']");
+    private static final By UNUSUAL_BUTTON_LOCATOR = By.cssSelector("div[class*='bbtn bbtn-yel'] > a");
 
     private WebDriver watcherDriver;
     private Set<String> unusualSet;
@@ -68,7 +69,7 @@ public class Watcher implements Runnable {
     }
 
     private void isThereAnythingUnusual() {
-        List<WebElement> unusualButtons = SeleniumUtils.getWebElements(watcherDriver, UNUSUAL_BUTTON_LOCATOR);
+        List<WebElement> unusualButtons = SeleniumUtils.getWebElements(watcherDriver, UNUSUAL_ELEMENT_LOCATOR);
         String screenShot = null;
         if (unusualButtons.size() > 0) {
             screenShot = SeleniumUtils.takeNamedScreenShot(watcherDriver, "somethingUnusual");
@@ -76,12 +77,18 @@ public class Watcher implements Runnable {
 
         try {
             for (int i = 0; i < unusualButtons.size(); i++) {
-                String unusualThingText = SeleniumUtils.getWebElements(watcherDriver, UNUSUAL_BUTTON_LOCATOR)
-                        .get(i).getText();
-                String clearedText = unusualThingText.replaceAll("[0-9]", "");
-                boolean thisStrangeThingWasNotAlreadyNoticed = unusualSet.add(clearedText);
+                WebElement unusualElement = SeleniumUtils.getWebElements(watcherDriver, UNUSUAL_ELEMENT_LOCATOR).get(i);
+                String messageText = unusualElement.getText().replaceAll("[0-9]", "");
+                String unusualElementHTML = SeleniumUtils.saveHTML(watcherDriver);
+
+                WebElement unusualButton = SeleniumUtils.getWebElements(watcherDriver, UNUSUAL_BUTTON_LOCATOR).get(i);
+                messageText += "\n" + unusualElement.getText().replaceAll("[0-9]", "");
+                unusualButton.click();
+                String unusualElementHTMLInner = SeleniumUtils.saveHTML(watcherDriver);
+
+                boolean thisStrangeThingWasNotAlreadyNoticed = unusualSet.add(messageText);
                 if (thisStrangeThingWasNotAlreadyNoticed) {
-                    Utils.sendEmail("Selenium Gamer unusual thing report", unusualThingText, screenShot);
+                    Utils.sendEmail("Selenium Gamer unusual thing report", messageText, screenShot, unusualElementHTML, unusualElementHTMLInner);
                 }
             }
         } catch (MessagingException e) {

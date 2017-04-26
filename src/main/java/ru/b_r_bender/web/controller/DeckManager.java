@@ -25,6 +25,7 @@ public class DeckManager implements Runnable {
 
     public static final String PLAY_DECK_PAGE_URI = "http://elem.mobi/deck/";
     public static final String WEAK_DECK_PAGE_URI = "http://elem.mobi/weakcards/";
+    private static final String GUILD_CARD_IDENTITY = "Карта гильдии";
 
     private static final By DECK_CARDS_LOCATOR = By.cssSelector("a[class='card'][href*='/card/']");
 
@@ -66,6 +67,9 @@ public class DeckManager implements Runnable {
                                                 ? cardElements.size()
                                                 : cardElements.size() >= 5 ? 5 : cardElements.size()); i++) {
                 WebElement cardElement = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR).get(i);
+                if (cardElement.getText().contains(GUILD_CARD_IDENTITY)) {
+                    continue;
+                }
                 cardElement.click();
                 result.add(new PlayCard(managerDriver));
                 Thread.sleep(Utils.getThreeSecondsDelay());

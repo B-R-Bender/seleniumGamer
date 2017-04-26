@@ -19,21 +19,21 @@ public class Gladiator implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(Gladiator.class);
 
-    public static final String ARENA_PAGE_URI = "http://elem.mobi/arena/";
+    public static final String ARENA_PAGE_URI = "http://elem.mobi/survival/";
 
-    private static final By ARENA_CHECK_IN_BUTTON_LOCATOR = By.xpath("//a[@href='/arena/join/']");
-    private static final By ARENA_CHECK_IN_REFRESH_BUTTON_LOCATOR = By.xpath("//a[@href='/arena/']");
+    private static final By ARENA_CHECK_IN_BUTTON_LOCATOR = By.xpath("//a[@href='/survival/join/']");
+    private static final By ARENA_CHECK_IN_REFRESH_BUTTON_LOCATOR = By.xpath("//a[@href='/survival/']");
     private static final By ARENA_TASKS_LOCATOR = By.xpath("//div[@class='c_99 cntr small']");
     private static final By ARENA_BATTLE_COUNTDOWN_LOCATOR = By.xpath("//div[@class='c_fe']");
 
     private static final By CARDS_REFRESH_COOL_DOWN_LOCATOR = By.cssSelector(".count");
-    private static final By CARDS_REFRESH_LOCATOR = By.cssSelector("a[href*='/arena/'][class*='btn blue w100px']");
-    private static final By HERO_CARDS_BUTTON_LOCATOR = By.cssSelector("a[href*='/arena/'][class='card']");
-    private static final By OPPONENT_CARDS_BUTTON_LOCATOR = By.cssSelector("a[href*='/arena/'][class='card chide66']");
+    private static final By CARDS_REFRESH_LOCATOR = By.cssSelector("a[href*='/survival/'][class*='btn blue w100px']");
+    private static final By HERO_CARDS_BUTTON_LOCATOR = By.cssSelector("a[href*='/survival/'][class='card']");
+    private static final By OPPONENT_CARDS_BUTTON_LOCATOR = By.xpath("//a[contains(@href, '/survival/') and contains(@class, 'card chide66')]/span/..");
     private static final By DAMAGE_MULTIPLIER_BUTTON_LOCATOR = By.cssSelector(".small.mb5");
 
-    private static final By ARENA_WIN_LOCATOR = By.xpath("//*[text()[contains(.,'Ваша команда победила')]]");
-    private static final By ARENA_LOSE_LOCATOR = By.cssSelector(".c_lose.medium");
+    private static final By ARENA_WIN_LOCATOR = By.xpath("//*[text()[contains(.,'Вы один из победителей!')]]");
+    private static final By ARENA_LOSE_LOCATOR = By.xpath("//*[text()[contains(.,'Вы храбро сражались!')]]");
 
     private WebDriver gladiatorDriver;
     private int arenaWins;
@@ -85,7 +85,7 @@ public class Gladiator implements Runnable {
         try {
             SeleniumUtils.getWebElement(gladiatorDriver, ARENA_CHECK_IN_BUTTON_LOCATOR).click();
             Integer countdown = SeleniumUtils.getIntValueFromElement(gladiatorDriver, ARENA_BATTLE_COUNTDOWN_LOCATOR);
-            Thread.sleep((countdown != null ? countdown * 1_000 : 30_000) + 1_000);
+            Thread.sleep((countdown != null ? countdown * 1_000 : 30_000) + 3_000);
             WebElement refreshElement = SeleniumUtils.getWebElement(gladiatorDriver, ARENA_CHECK_IN_REFRESH_BUTTON_LOCATOR);
             if (refreshElement != null) {
                 refreshElement.click();

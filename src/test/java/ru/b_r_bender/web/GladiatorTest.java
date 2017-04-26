@@ -1,5 +1,7 @@
 package ru.b_r_bender.web;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import ru.b_r_bender.web.controller.Gladiator;
@@ -14,21 +16,31 @@ import javax.security.auth.login.FailedLoginException;
  */
 public class GladiatorTest {
 
-    @Test
-    public void gladiatorTest() {
-        WebDriver webDriver = SeleniumUtils.getNewDriverInstance();
+    WebDriver webDriver;
+
+    @Before
+    public void init() {
+        webDriver = SeleniumUtils.getNewDriverInstance();
 
         try {
             EnterPage enterPage = new EnterPage(webDriver);
             LoginPage loginPage = enterPage.registeredUserEntry();
             loginPage.login();
-
-            new Gladiator(webDriver).run();
+            System.out.println("Login complete");
         } catch (FailedLoginException e) {
-            //MYTODO [Homenko] добавить обработку эксепшена
+            e.printStackTrace();
         }
+    }
 
+    @After
+    public void clear() {
         SeleniumUtils.driverDismiss(webDriver);
+    }
+
+
+    @Test
+    public void gladiatorTest() {
+        new Gladiator(webDriver).run();
     }
 
 

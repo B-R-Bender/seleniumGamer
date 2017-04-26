@@ -70,25 +70,23 @@ public class Watcher implements Runnable {
 
     private void isThereAnythingUnusual() {
         List<WebElement> unusualButtons = SeleniumUtils.getWebElements(watcherDriver, UNUSUAL_ELEMENT_LOCATOR);
-        String screenShot = null;
-        if (unusualButtons.size() > 0) {
-            screenShot = SeleniumUtils.takeNamedScreenShot(watcherDriver, "somethingUnusual");
-        }
-
         try {
             for (int i = 0; i < unusualButtons.size(); i++) {
                 WebElement unusualElement = SeleniumUtils.getWebElements(watcherDriver, UNUSUAL_ELEMENT_LOCATOR).get(i);
+                String screenShot = SeleniumUtils.takeNamedScreenShot(watcherDriver, "something_unusual_main");
                 String messageText = unusualElement.getText().replaceAll("[0-9]", "");
                 String unusualElementHTML = SeleniumUtils.saveHTML(watcherDriver);
 
                 WebElement unusualButton = SeleniumUtils.getWebElements(watcherDriver, UNUSUAL_BUTTON_LOCATOR).get(i);
-                messageText += "\n" + unusualElement.getText().replaceAll("[0-9]", "");
+                messageText += "\n" + unusualButton.getText().replaceAll("[0-9]", "");
                 unusualButton.click();
                 String unusualElementHTMLInner = SeleniumUtils.saveHTML(watcherDriver);
+                String screenShotInner = SeleniumUtils.takeNamedScreenShot(watcherDriver, "something_unusual_inner");
 
                 boolean thisStrangeThingWasNotAlreadyNoticed = unusualSet.add(messageText);
                 if (thisStrangeThingWasNotAlreadyNoticed) {
-                    Utils.sendEmail("Selenium Gamer unusual thing report", messageText, screenShot, unusualElementHTML, unusualElementHTMLInner);
+                    Utils.sendEmail("Selenium Gamer unusual thing report", messageText,
+                                            screenShot, screenShotInner, unusualElementHTML, unusualElementHTMLInner);
                 }
             }
         } catch (MessagingException e) {

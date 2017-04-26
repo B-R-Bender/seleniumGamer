@@ -62,7 +62,9 @@ public class DeckManager implements Runnable {
             }
 
             List<WebElement> cardElements = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR);
-            for (int i = 0; i < (deckURI.equals(PLAY_DECK_PAGE_URI) ? cardElements.size() : 5); i++) {
+            for (int i = 0; i < (deckURI.equals(PLAY_DECK_PAGE_URI)
+                                                ? cardElements.size()
+                                                : cardElements.size() >= 5 ? 5 : cardElements.size()); i++) {
                 WebElement cardElement = SeleniumUtils.getWebElements(managerDriver, DECK_CARDS_LOCATOR).get(i);
                 cardElement.click();
                 result.add(new PlayCard(managerDriver));
